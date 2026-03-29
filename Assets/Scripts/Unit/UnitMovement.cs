@@ -17,6 +17,8 @@ public class UnitMovement : MonoBehaviour {
     [SerializeField] private float stuckTimeThresholdForRepath = 1;
     [SerializeField] private float offThePathTimeThresholdForRepath = 1;
     [SerializeField] private float requestOtherUnitToStepAsideTimeThreshold = .5f;
+    
+    [SerializeField] private AudioClip crushingAudioClip;
 
     private IEnumerator movementAnimationCoroutine;
 
@@ -49,6 +51,11 @@ public class UnitMovement : MonoBehaviour {
 
     public Vector2Int? ReservedCell { get; private set; }
 
+    public bool CanCrush(Unit otherUnit) {
+        return otherUnit != null && otherUnit != unit && otherUnit.OwningPlayer != unit.OwningPlayer &&
+               unit.UnitKind == Unit.Kind.Vehicle && otherUnit.UnitKind == Unit.Kind.Infantry;
+    }
+
     public bool FindPathToDestination() {
 
         ClearPath();
@@ -74,7 +81,8 @@ public class UnitMovement : MonoBehaviour {
     private IEnumerator MoveToCell(Vector2 end, Vector2Int endCell) {
 
         Debug.Assert(unit.World.Grid[endCell].isWalkable);
-        Debug.Assert(!unit.World.Grid[endCell].occupiedBy);
+        var enemyUnit = unit.World.Grid[endCell].occupiedBy;
+        Debug.Assert(!enemyUnit || CanCrush(enemyUnit));
         Debug.Assert(unit.World.Grid[endCell].reservedBy == unit);
 
         ReservedCell = endCell;
@@ -115,6 +123,18 @@ public class UnitMovement : MonoBehaviour {
 
         unit.World.Grid[cell].occupiedBy = null;
 
+        if (enemyUnit) {
+            // if we get here it means there is an enemy unit on this cell and we can crush it, so we destroy the enemy unit
+
+            // if the enemy units was already moving to some other cell and reserved that cell, we free that cell from reservation so that other units can move there
+            if (enemyUnit.Movement.ReservedCell is { } actualEnemyUnitReservedCell)
+                unit.World.Grid[actualEnemyUnitReservedCell].reservedBy = null;
+            
+            enemyUnit.Die();
+            
+            unit.World.AudioSystem.PlayOneShotWithCooldown(unit.EffectsAudioSource, crushingAudioClip);
+        }
+
         unit.World.Grid[endCell].occupiedBy = unit;
         unit.World.Grid[endCell].reservedBy = null;
 
@@ -139,7 +159,7 @@ public class UnitMovement : MonoBehaviour {
 
     private void Update() {
 
-        if (unit.IsSelected && unit.OwningPlayer.Controller.showMovePathCells) {
+        if (unit.IsSelected && unit.OwningPlayer.PlayerController && unit.OwningPlayer.PlayerController.showMovePathCells) {
             for (var segmentIndex = 0; segmentIndex < smoothPathCells.Count - 1; segmentIndex++) {
                 var start = unit.World.Grid.IndexToWorldPosition(smoothPathCells[segmentIndex]);
                 var end = unit.World.Grid.IndexToWorldPosition(smoothPathCells[segmentIndex + 1]);
@@ -185,7 +205,7 @@ public class UnitMovement : MonoBehaviour {
 
             if (nextCell is { } actualNextCell) {
                 var unitInTheWay = unit.World.Grid[actualNextCell].occupiedBy;
-                if (unitInTheWay == unit)
+                if (unitInTheWay == unit || CanCrush(unitInTheWay))
                     unitInTheWay = null;
                 if (!unitInTheWay && !unit.World.Grid[actualNextCell].reservedBy) {
                     unit.World.Grid[actualNextCell].reservedBy = unit;

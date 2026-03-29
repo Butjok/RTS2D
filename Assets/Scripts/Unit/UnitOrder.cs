@@ -16,6 +16,7 @@ public struct UnitOrder {
     public Vector2? MoveDestination => moveDestination;
     public Unit TargetUnit => targetUnit;
     public Building TargetBuilding => targetBuilding;
+    public IAttackTarget AttackTarget => targetUnit ? targetUnit : targetBuilding;
 
     public UnitOrder(Vector2 moveDestination, Unit targetUnit = null, Building targetBuilding = null) {
         Debug.Assert(!targetUnit && !targetBuilding ||

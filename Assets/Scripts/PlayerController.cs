@@ -166,14 +166,14 @@ public class PlayerController : WorldBehaviour {
                     selectedEntities.RemoveAll(e => e != closestUnit && e != closestBuilding);
 
                 foreach (var selectable in selectedEntities)
-                    if (!oldSelectedEntitiesSet.Contains(selectable))
+                    if (selectable.ObjectExists && !oldSelectedEntitiesSet.Contains(selectable))
                         selectable.IsSelected = true;
 
                 selectedEntitiesSet.Clear();
                 selectedEntitiesSet.UnionWith(selectedEntities);
 
                 foreach (var selectable in oldSelectedEntitiesSet)
-                    if (!selectedEntitiesSet.Contains(selectable))
+                    if (selectable.ObjectExists && !selectedEntitiesSet.Contains(selectable))
                         selectable.IsSelected = false;
 
                 oldSelectedEntitiesSet.Clear();
@@ -201,6 +201,7 @@ public class PlayerController : WorldBehaviour {
 
                     var targetPosition = hitInfo.point.ToVector2();
                     var targetBuilding = hitInfo.collider.GetComponent<Building>();
+                    var targetUnit =    hitInfo.collider.GetComponent<Unit>();
 
                     formationPositions.Clear();
                     foreach (var unit in selectedUnits)
@@ -209,8 +210,11 @@ public class PlayerController : WorldBehaviour {
 
                     UnitFormation.ProjectToWalkable(World.Grid, formationPositions);
 
+                    if (targetUnit && targetBuilding)
+                        targetBuilding = null;
+                    
                     foreach (var unit in selectedUnits)
-                        unit.SetOrder(new UnitOrder(moveDestination: formationPositions[unit], targetBuilding: targetBuilding));
+                        unit.SetOrder(new UnitOrder(moveDestination: formationPositions[unit], targetBuilding: targetBuilding, targetUnit: targetUnit));
 
                     if (selectedUnits.Count > 0) {
                         var isAttackOrder = (bool)targetBuilding;

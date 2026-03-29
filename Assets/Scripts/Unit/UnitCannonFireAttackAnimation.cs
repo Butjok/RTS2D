@@ -28,10 +28,10 @@ public class UnitCannonFireAttackAnimation : UnitAttackAnimation {
                 yield break;
 
             var position = muzzles[muzzleIndex].position;
-            var direction = target.AttackPosition - position;
+            var direction = target.PositionToBeAttackedAt - position;
             var rotation = Quaternion.LookRotation(direction);
             OwningUnit.World.Spawn(projectilePrefab, projectile => {
-                projectile.Initialize(OwningUnit.World, projectilePrefab, OwningUnit, target.AttackPosition);
+                projectile.Initialize(OwningUnit.World, projectilePrefab, OwningUnit, target.PositionToBeAttackedAt);
                 projectile.transform.SetPositionAndRotation(position, rotation);
             });
 

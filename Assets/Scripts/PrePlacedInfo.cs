@@ -1,6 +1,17 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PrePlacedInfo : MonoBehaviour {
+
+    private static readonly List<Color> inEditorPreviewPlayerColors = new() {
+        Color.red,
+        Color.blue,
+        Color.green,
+        Color.yellow,
+        Color.cyan,
+        Color.magenta,
+        Color.gray
+    };
 
     [SerializeField] private World world;
     [SerializeField] private WorldBehaviour target;
@@ -10,6 +21,7 @@ public class PrePlacedInfo : MonoBehaviour {
     public World World => world;
     public WorldBehaviour Target => target;
     public WorldBehaviour Prefab => prefab;
+    public int PlayerId => playerId;
 
     public Player Player {
         get {
@@ -18,6 +30,19 @@ public class PrePlacedInfo : MonoBehaviour {
                     return player;
             return null;
         }
+    }
+
+    public void UpdateInEditorPlayerColor() {
+        if (playerId < 0 || playerId >= inEditorPreviewPlayerColors.Count)
+            return;
+        var playerColor = inEditorPreviewPlayerColors[playerId];
+        if (target is Unit unit)
+            unit.PlayerColor = playerColor;
+        else if (target is Building building)
+            building.PlayerColor = playerColor;
+    }
+    private void OnValidate() {
+        UpdateInEditorPlayerColor();
     }
 }
 

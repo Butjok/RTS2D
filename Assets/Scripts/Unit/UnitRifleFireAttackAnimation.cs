@@ -33,7 +33,7 @@ public class UnitRifleFireAttackAnimation : UnitAttackAnimation {
                 if (!target.ObjectExists)
                     yield break;
 
-                StartCoroutine(Tracer(transform.position, target.AttackPosition));
+                StartCoroutine(Tracer(transform.position, target.PositionToBeAttackedAt));
 
                 if (i == 0 && shotSound)
                     OwningUnit.World.AudioSystem.PlayOneShotWithCooldown(audioSource, shotSound);

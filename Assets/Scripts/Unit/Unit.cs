@@ -6,6 +6,11 @@ using Object = UnityEngine.Object;
 
 public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBuildable, ICanBePrePlaced {
 
+    public enum Kind {
+        Infantry,
+        Vehicle
+    }
+
     [Serializable]
     public struct UnitTurret {
         [SerializeField] private Transform turretTransform;
@@ -38,12 +43,16 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     [SerializeField] private List<AudioClip> onSelectedVoiceLines = new();
     [SerializeField] private List<AudioClip> onMoveOrderVoiceLines = new();
     [SerializeField] private List<AudioClip> onAttackOrderVoiceLines = new();
+    [SerializeField] private List<AudioClip> deathScreams = new();
 
     [SerializeField] private UnitTurret turret;
     [SerializeField] private float turretRelativeYaw = 0;
     [SerializeField] private float turretRotationSpeed = 90;
 
     [SerializeField] private UnitOrder currentOrder = new();
+    [SerializeField] private Kind kind = Kind.Infantry;
+
+    [SerializeField] private AudioSource effectsAudioSource;
 
     private MaterialPropertyBlock materialPropertyBlock;
     private Color? playerColor;
@@ -59,6 +68,8 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     public IReadOnlyList<AudioClip> OnSelectedVoiceLines => onSelectedVoiceLines;
     public IReadOnlyList<AudioClip> OnMoveOrderVoiceLines => onMoveOrderVoiceLines;
     public IReadOnlyList<AudioClip> OnAttackOrderVoiceLines => onAttackOrderVoiceLines;
+    public Kind UnitKind => kind;
+    public AudioSource EffectsAudioSource => effectsAudioSource;
 
     public Bounds SelectionBounds {
         get {
@@ -140,17 +151,17 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
 
 
     public bool AttackNow(IAttackTarget target) {
-        
+
         if (Time.time - lastAttackTime < attackCooldown)
             return false;
         lastAttackTime = Time.time;
-        
+
         if (attackAnimationCoroutine != null)
             StopCoroutine(attackAnimationCoroutine);
-        
+
         attackAnimationCoroutine = AttackAnimation(target);
         StartCoroutine(attackAnimationCoroutine);
-        
+
         return true;
     }
 
@@ -164,7 +175,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
 
         pathRenderer.enabled = IsSelected && movement.MovePath.Count >= 2;
         if (pathRenderer.enabled) {
-            
+
             movePathSegments.Clear();
             for (var segmentIndex = 0; segmentIndex < movement.MovePath.Count - 1; segmentIndex++) {
                 var start = movement.MovePath[segmentIndex];
@@ -181,16 +192,19 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
         }
 
         // If we have an attack target and it's in range -> attack it, otherwise move towards it 
-        if (currentOrder.TargetBuilding && DistanceTo(currentOrder.TargetBuilding) <= attackRange) {
-            AttackNow(currentOrder.TargetBuilding);
+        if (currentOrder.AttackTarget is { ObjectExists: true } && DistanceTo(currentOrder.AttackTarget) <= attackRange) {
+            AttackNow(currentOrder.AttackTarget);
             movement.shouldMoveAlongPath = false;
         }
         else
             movement.shouldMoveAlongPath = true;
     }
 
+    public void Die() {
 
-    private void Die() {
+        //if (effectsAudioSource && deathScreams.Count > 0)
+            //World.AudioSystem.PlayRandomOneShotWithCooldown(World.AudioSystem.effe, deathScreams);
+
         CancelAttackAnimation();
         World.Destroy(this);
     }
@@ -203,7 +217,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
         }
     }
 
-    public Vector3 AttackPosition => transform.position;
+    public Vector3 PositionToBeAttackedAt => transform.position;
 
     public void ReceiveAttackFrom(Unit attacker) {
         var damage = World.DamageStats.GetDamage((Unit)attacker.Prefab, (Unit)Prefab);
@@ -215,6 +229,16 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     public float DistanceTo(Building targetBuilding) {
         var closestPointOnBuilding = targetBuilding.BoxCollider.ClosestPoint(transform.position);
         return Vector3.Distance(transform.position, closestPointOnBuilding);
+    }
+    public float DistanceTo(Unit targetUnit) {
+        return Vector3.Distance(transform.position, targetUnit.transform.position);
+    }
+    public float DistanceTo(IAttackTarget attackTarget) {
+        return attackTarget switch {
+            Building building => DistanceTo(building),
+            Unit unit => DistanceTo(unit),
+            _ => throw new ArgumentException("Unknown attack target type")
+        };
     }
 
     private void CancelOrderIfTargetIsDestroyed(Object obj) {

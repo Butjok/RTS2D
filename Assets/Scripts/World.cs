@@ -69,7 +69,7 @@ public class World : MonoBehaviour {
                 playerController.enabled = false;
                 worldCamera = playerController.PlayerCamera;
             });
-            redPlayer.Controller = playerController;
+            redPlayer.PlayerController = playerController;
         }
         
         var bluePlayer = Spawn<Player>(player => {

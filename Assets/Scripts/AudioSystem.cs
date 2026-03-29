@@ -5,9 +5,10 @@ using Random = UnityEngine.Random;
 
 [RequireComponent(typeof(AudioSource))]
 public class AudioSystem : WorldBehaviour {
-    [SerializeField] private AudioSource musicAudioSource;
     [SerializeField] private List<AudioClip> musicClips = new();
     [SerializeField] private int nextMusicClipIndex = 0;
+    
+    [SerializeField] private AudioSource musicAudioSource;
     [SerializeField] private AudioSource unitVoiceAudioSourceForeground;
     [SerializeField] private AudioSource unitVoiceAudioSourceBackground;
     [SerializeField] private AudioSource announcerAudioSource;
@@ -118,5 +119,10 @@ public class AudioSystem : WorldBehaviour {
             lastTimeAudioClipWasPlayed[clip] = Time.time;
             source.PlayOneShot(clip);
         }
+    }
+    public void PlayRandomOneShotWithCooldown(AudioSource source, IReadOnlyList<AudioClip> clips) {
+        Debug.Assert(clips.Count > 0, "Cannot play random one shot with cooldown if there are no clips");
+        var randomIndex = Random.Range(0, clips.Count);
+        PlayOneShotWithCooldown(source, clips[randomIndex]);
     }
 }

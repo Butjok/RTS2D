@@ -161,7 +161,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
         World.Destroy(this);
     }
 
-    public Vector3 AttackPosition => meshRenderer.bounds.center;
+    public Vector3 PositionToBeAttackedAt => meshRenderer.bounds.center;
 
     public void ReceiveAttackFrom(Unit attacker) {
         var damage = World.DamageStats.GetDamage((Unit)attacker.Prefab, (Building)Prefab);

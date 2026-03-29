@@ -9,7 +9,7 @@ public class Player : WorldBehaviour {
     }
     
     [SerializeField] private int id = -1;
-    [SerializeField] private PlayerController controller;
+    [SerializeField] private PlayerController playerController;
     [SerializeField] private Color color;
     [SerializeField] private int credits;
     [SerializeField] private Kind kind = Kind.Player;
@@ -21,9 +21,9 @@ public class Player : WorldBehaviour {
     public int Id => id;
     public bool IsAi => kind == Kind.AI;
 
-    public PlayerController Controller {
-        get => controller;
-        set => controller = value;
+    public PlayerController PlayerController {
+        get => playerController;
+        set => playerController = value;
     }
 
     public void Initialize(World world, Player prefab, int id, Kind kind) {

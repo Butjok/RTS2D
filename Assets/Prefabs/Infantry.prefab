@@ -270,6 +270,7 @@ GameObject:
   - component: {fileID: 6999701738486167634}
   - component: {fileID: 3291945252028627405}
   - component: {fileID: 6656405996129742957}
+  - component: {fileID: 7835363446607542024}
   m_Layer: 6
   m_Name: Infantry
   m_TagString: Untagged
@@ -340,6 +341,12 @@ MonoBehaviour:
   - {fileID: 8300000, guid: c87e8371f470c413da934712477d0681, type: 3}
   - {fileID: 8300000, guid: 11a34e5a93850461ba6da4ec7ab802cd, type: 3}
   - {fileID: 8300000, guid: 88bf4d5df405a4eb799c059bb99beb72, type: 3}
+  deathScreams:
+  - {fileID: 8300000, guid: 15116ff4617218b48a5e2d1702b72cab, type: 3}
+  - {fileID: 8300000, guid: d0bfe4b8a259b9842a82f59396ac5b8c, type: 3}
+  - {fileID: 8300000, guid: c827a643a8ee8534f8ae1b6436c8f4e7, type: 3}
+  - {fileID: 8300000, guid: 39b507c5c4a7b0a4b90b413aa6f73e13, type: 3}
+  - {fileID: 8300000, guid: 03fd9749e05099548aec992759fdf6bb, type: 3}
   turret:
     turretTransform: {fileID: 0}
     barrelMuzzleTransform: {fileID: 0}
@@ -348,6 +355,8 @@ MonoBehaviour:
   currentOrder:
     targetUnit: {fileID: 0}
     targetBuilding: {fileID: 0}
+  kind: 0
+  effectsAudioSource: {fileID: 7835363446607542024}
 --- !u!114 &6999701738486167634
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -369,6 +378,7 @@ MonoBehaviour:
   stuckTimeThresholdForRepath: 1
   offThePathTimeThresholdForRepath: 1
   requestOtherUnitToStepAsideTimeThreshold: 0.5
+  crushingAudioClip: {fileID: 0}
   wasRequestToStepAsideBy: []
   aStarPath: []
   notSmoothPath: []
@@ -500,6 +510,103 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!82 &7835363446607542024
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1616467520558958961}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: -6324720924025875250, guid: a6aa061e02c59497da5a6be18f7b401e, type: 2}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1 &3688725623059518990
 GameObject:
   m_ObjectHideFlags: 0
@@ -511,7 +618,7 @@ GameObject:
   - component: {fileID: 6905337379113967392}
   - component: {fileID: 4205074958156979345}
   - component: {fileID: 3831960648216866428}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: Capsule
   m_TagString: Untagged
   m_Icon: {fileID: 0}
