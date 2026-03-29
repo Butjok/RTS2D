@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -8,7 +9,7 @@ using UnityEngine;
 
 public class SimpleReflectionBasedTextSerializer {
 
-    public const BindingFlags DefaultBindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+    public const BindingFlags defaultBindingFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
     private readonly TextWriter writer;
     private readonly TextReader reader;
@@ -21,7 +22,7 @@ public class SimpleReflectionBasedTextSerializer {
     }
 
     private IEnumerable<FieldInfo> EnumerateFields(Type type) {
-        return type.GetFields(DefaultBindingFlags).Where(field => field.GetCustomAttribute<SaveGameAttribute>() != null);
+        return type.GetFields(defaultBindingFlags).Where(field => field.GetCustomAttribute<SaveGameAttribute>() != null);
     }
 
     public void Serialize(object obj) {
@@ -42,7 +43,7 @@ public class SimpleReflectionBasedTextSerializer {
                     break;
                 case float floatValue:
                     writer.WriteLine("float");
-                    writer.WriteLine(floatValue);
+                    writer.WriteLine(floatValue.ToString(CultureInfo.InvariantCulture));
                     break;
                 case string stringValue:
                     writer.WriteLine("string");
@@ -67,7 +68,7 @@ public class SimpleReflectionBasedTextSerializer {
                     value = int.Parse(ReadLine());
                     break;
                 case "float":
-                    value = float.Parse(ReadLine());
+                    value = float.Parse(ReadLine(), CultureInfo.InvariantCulture);
                     break;
                 case "string":
                     value = UnescapeString(ReadLine());

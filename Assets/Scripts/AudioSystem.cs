@@ -1,13 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 using Random = UnityEngine.Random;
 
 [RequireComponent(typeof(AudioSource))]
 public class AudioSystem : WorldBehaviour {
+
+    [SerializeField] private AudioMixer audioMixer;
+    [SerializeField] private Vector2 volumeRange = new(0, 1);
+
     [SerializeField] private List<AudioClip> musicClips = new();
     [SerializeField] private int nextMusicClipIndex = 0;
-    
+
     [SerializeField] private AudioSource musicAudioSource;
     [SerializeField] private AudioSource unitVoiceAudioSourceForeground;
     [SerializeField] private AudioSource unitVoiceAudioSourceBackground;
@@ -110,7 +115,7 @@ public class AudioSystem : WorldBehaviour {
     public void SayAnnouncerVoiceLine(AudioClip voiceLineClip) {
         announcerAudioSource.PlayOneShot(voiceLineClip);
     }
-    
+
     public void PlayOneShotWithCooldown(AudioSource source, AudioClip clip) {
         if (!lastTimeAudioClipWasPlayed.TryGetValue(clip, out var lastPlayedTime))
             lastPlayedTime = -Mathf.Infinity;
@@ -120,9 +125,26 @@ public class AudioSystem : WorldBehaviour {
             source.PlayOneShot(clip);
         }
     }
+
     public void PlayRandomOneShotWithCooldown(AudioSource source, IReadOnlyList<AudioClip> clips) {
         Debug.Assert(clips.Count > 0, "Cannot play random one shot with cooldown if there are no clips");
         var randomIndex = Random.Range(0, clips.Count);
         PlayOneShotWithCooldown(source, clips[randomIndex]);
+    }
+
+    public float VolumeMaster {
+        set => audioMixer.SetFloat("VolumeMaster", Mathf.Lerp(volumeRange[0], volumeRange[1], value));
+    }
+
+    public float VolumeMusic {
+        set => audioMixer.SetFloat("VolumeMusic", Mathf.Lerp(volumeRange[0], volumeRange[1], value));
+    }
+
+    public float VolumeEffects {
+        set => audioMixer.SetFloat("VolumeEffects", Mathf.Lerp(volumeRange[0], volumeRange[1], value));
+    }
+
+    public float VolumeVoiceLines {
+        set => audioMixer.SetFloat("VolumeVoiceLines", Mathf.Lerp(volumeRange[0], volumeRange[1], value));
     }
 }

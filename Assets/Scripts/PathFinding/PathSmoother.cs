@@ -69,8 +69,8 @@ public static class PathSmoother {
             offset.x > 0 ? .5f : -.5f,
             offset.y > 0 ? .5f : -.5f);
 
-        var tMaxX = offset.x == 0 ? 999 : (border.x - start.x) / offset.x;
-        var tMaxY = offset.y == 0 ? 999 : (border.y - start.y) / offset.y;
+        var tMaxX = Mathf.Approximately(offset.x, 0) ? 999 : (border.x - start.x) / offset.x;
+        var tMaxY = Mathf.Approximately(offset.y, 0) ? 999 : (border.y - start.y) / offset.y;
 
         var tDelta = new Vector2(cellSize / Mathf.Abs(offset.x), cellSize / Mathf.Abs(offset.y));
         var step = new Vector2Int(offset.x > 0 ? 1 : -1, offset.y > 0 ? 1 : -1);
@@ -105,8 +105,8 @@ public static class PathSmoother {
             offset.x > 0 ? x + .5f : x - .5f,
             offset.y > 0 ? x + .5f : x - .5f);
 
-        var tMaxX = offset.x == 0 ? 999 : (border.x - start.x) / offset.x;
-        var tMaxY = offset.y == 0 ? 999 : (border.y - start.y) / offset.y;
+        var tMaxX = Mathf.Approximately(offset.x, 0) ? 999 : (border.x - start.x) / offset.x;
+        var tMaxY = Mathf.Approximately(offset.y, 0) ? 999 : (border.y - start.y) / offset.y;
 
         var tDelta = new Vector2(1f / Mathf.Abs(offset.x), 1f / Mathf.Abs(offset.y));
         var step = new Vector2Int(offset.x > 0 ? 1 : -1, offset.y > 0 ? 1 : -1);

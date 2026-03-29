@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -47,7 +48,7 @@ public class Projectile : WorldBehaviour {
         audioSource.Play();
         
         var clipLength = audioSource.clip ? audioSource.clip.length : 0;
-        Destroy(gameObject, clipLength);
+        StartCoroutine(DelayedDestruction(clipLength));
         
         var count =  Physics.OverlapSphereNonAlloc(transform.position, explosionRadius, damagedColliders);
         for  (var i = 0; i < count; i++) {
@@ -62,5 +63,14 @@ public class Projectile : WorldBehaviour {
                 building.ReceiveAttackFrom(owningUnit);
             }
         }
+    }
+
+    private IEnumerator DelayedDestruction(float delay) {
+        var elapsed = 0f;
+        while (elapsed < delay) {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        World.Destroy(this);
     }
 }
