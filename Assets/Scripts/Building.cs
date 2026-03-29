@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Rendering.Universal;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
@@ -29,6 +28,8 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
         }
 
         public float BuildTime => ((IBuildable)prefab).BuildTime;
+        
+        public float Progress => Mathf.Clamp01(timeElapsed / BuildTime);
 
         public BuildingQueueItem(IBuildable buildablePrefab) {
             prefab = (Object)buildablePrefab;
@@ -189,10 +190,12 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
         }
     }
 
-    public void StartBuilding(Unit unitPrefab) {
-        Debug.Assert(buildableUnitPrefabs.Contains(unitPrefab));
-        buildingQueue.Enqueue(new BuildingQueueItem(unitPrefab));
+    public BuildingQueueItem StartBuilding(IBuildable buildable) {
+        //Debug.Assert(buildableUnitPrefabs.Contains(buildable));
+        var itemInConstruction = new BuildingQueueItem(buildable);
+        buildingQueue.Enqueue(itemInConstruction);
         World.AudioSystem.SayAnnouncerVoiceLine(World.AudioSystem.AnnouncerBuilding);
+        return itemInConstruction;
     }
 
     private void Update() {

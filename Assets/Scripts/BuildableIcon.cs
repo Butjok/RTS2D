@@ -10,6 +10,7 @@ public class BuildableIcon : Image {
     [SerializeField] private Material baseMaterial;
     [SerializeField] private float progress;
     private Material materialInstance;
+    private Building.BuildingQueueItem itemInConstruction;
 
     public Building testBuilding;
     public Unit unitPrefab;
@@ -32,6 +33,11 @@ public class BuildableIcon : Image {
         Progress = progress;
     }
 
+    private void Update() {
+        if (itemInConstruction != null)
+            Progress = itemInConstruction.Progress;
+    }
+
     public float Progress {
         get => progress;
         set {
@@ -44,7 +50,7 @@ public class BuildableIcon : Image {
     public void StartBuilding() {
         if (!testBuilding)
             testBuilding = FindObjectsByType<Building>(FindObjectsSortMode.None).FirstOrDefault(b => !b.OwningPlayer.IsAi);
-        testBuilding.StartBuilding(unitPrefab);
+        itemInConstruction = testBuilding.StartBuilding(unitPrefab);
     }
 
     protected override void OnPopulateMesh(VertexHelper toFill) {
