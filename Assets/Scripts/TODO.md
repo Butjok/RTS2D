@@ -1,0 +1,2 @@
+- Path smoothing does not work properly. It does not take into account units which you cannot push.
+- Currently if the unit if off the path it requests repathing instead of trying to add a straight line path to the closest point on the path.

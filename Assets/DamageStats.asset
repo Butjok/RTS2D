@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83d348bdd86a450e8c2d7cd8551f7d4c, type: 3}
+  m_Name: DamageStats
+  m_EditorClassIdentifier: 
+  unitUnitPairs:
+  - attackerPrefab: {fileID: 8676087694340533686, guid: cbb1a2defcacc4ea2af8ce9538274c01, type: 3}
+    targetPrefab: {fileID: 8676087694340533686, guid: cbb1a2defcacc4ea2af8ce9538274c01, type: 3}
+    damage: 0.33
+  - attackerPrefab: {fileID: 8676087694340533686, guid: cbb1a2defcacc4ea2af8ce9538274c01, type: 3}
+    targetPrefab: {fileID: 8676087694340533686, guid: 92081db9d97d84699a8154bfcd1d188a, type: 3}
+    damage: 0.05
+  - attackerPrefab: {fileID: 8676087694340533686, guid: 92081db9d97d84699a8154bfcd1d188a, type: 3}
+    targetPrefab: {fileID: 8676087694340533686, guid: cbb1a2defcacc4ea2af8ce9538274c01, type: 3}
+    damage: 0.25
+  - attackerPrefab: {fileID: 8676087694340533686, guid: 92081db9d97d84699a8154bfcd1d188a, type: 3}
+    targetPrefab: {fileID: 8676087694340533686, guid: 92081db9d97d84699a8154bfcd1d188a, type: 3}
+    damage: 0.33
+  unitBuildingPairs:
+  - attackerPrefab: {fileID: 8676087694340533686, guid: cbb1a2defcacc4ea2af8ce9538274c01, type: 3}
+    targetPrefab: {fileID: 4128571816054445560, guid: de3edd7c6e1504bc4a5e58ecf29a0874, type: 3}
+    damage: 0.05
+  - attackerPrefab: {fileID: 8676087694340533686, guid: 92081db9d97d84699a8154bfcd1d188a, type: 3}
+    targetPrefab: {fileID: 4128571816054445560, guid: de3edd7c6e1504bc4a5e58ecf29a0874, type: 3}
+    damage: 0.15

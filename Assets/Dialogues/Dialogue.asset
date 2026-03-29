@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dab9b6680f064937ba175481a5c68e95, type: 3}
+  m_Name: Dialogue
+  m_EditorClassIdentifier: 
+  linesBatches:
+  - speaker: {fileID: 11400000, guid: 3f5f7beebd32ff946991fc33737cd197, type: 2}
+    lines:
+    - Hello Commander. Today we have got a new mission for you.
+    - The intelligence have gathered important information on the movement of enemy
+      troops. And it indicates an imminent attack.
+    - We must build our defences, fight back and then destoy the enemy forces in
+      the region.
+    - Good luck Commander.
+  commands:
+  - type: 0
+    speaker: {fileID: 11400000, guid: 3f5f7beebd32ff946991fc33737cd197, type: 2}
+    line: 
+  - type: 1
+    speaker: {fileID: 0}
+    line: Hello Commander. Today we have got a new mission for you.
+  - type: 1
+    speaker: {fileID: 0}
+    line: The intelligence have gathered important information on the movement of
+      enemy troops. And it indicates an imminent attack.
+  - type: 1
+    speaker: {fileID: 0}
+    line: We must build our defences, fight back and then destoy the enemy forces
+      in the region.
+  - type: 1
+    speaker: {fileID: 0}
+    line: Good luck Commander.
