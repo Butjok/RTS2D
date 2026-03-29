@@ -259,6 +259,10 @@ public class PlayerController : WorldBehaviour {
                     unit.transform.position = hitInfo.point;
                 });
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape)) {
+            World.GameplayStateMachine.Push(World.GameplayStateMachine.Create<InGameMenuGameplayState>());
+        }
     }
 
     public void StartBuildingPlacement(Building building) {

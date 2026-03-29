@@ -21,6 +21,8 @@ public class World : MonoBehaviour {
     [SerializeField] private Grid grid;
     [SerializeField] private DialogueUI dialogueUI;
     [SerializeField] private DamageStats damageStats;
+    [SerializeField] private InGameMenuUI inGameMenuUI;
+    [SerializeField] private GameplayStateMachine gameplayStateMachine;
 
     [SerializeField] private List<Unit> units = new();
 
@@ -48,6 +50,8 @@ public class World : MonoBehaviour {
     public Grid Grid => grid;
     public DialogueUI DialogueUI => dialogueUI;
     public DamageStats DamageStats => damageStats;
+    public InGameMenuUI InGameMenuUI => inGameMenuUI;
+    public GameplayStateMachine GameplayStateMachine => gameplayStateMachine;
 
     private void Awake() {
         

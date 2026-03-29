@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameplayStateRunner : WorldBehaviour {
+public class GameplayStateMachine : WorldBehaviour {
 
-    [SerializeField] private List<GameplayState> states = new();
+    [SerializeField] private List<GameplayStateBase> states = new();
 
     public const int maxDepth = 100;
 
     private void Awake() {
-        //states.Add(Create<LevelSessionGameplayState>());
+        states.Add(Create<LevelSessionGameplayState>());
     }
 
     private void Update() {
@@ -53,32 +53,13 @@ public class GameplayStateRunner : WorldBehaviour {
         }
     }
 
-    public void Push(GameplayState state) {
+    public void Push(GameplayStateBase state) {
         states.Add(state);
     }
 
-    public T Create<T>() where T : GameplayState {
+    public T Create<T>() where T : GameplayStateBase {
         var instance = ScriptableObject.CreateInstance<T>();
-        instance.gameplayStateRunner = this;
+        instance.Initialize(this);
         return instance;
     }
-}
-
-public abstract class GameplayState : ScriptableObject {
-
-    public struct Change {
-        public GameplayState newState;
-        public int popCount;
-    }
-
-    public GameplayStateRunner gameplayStateRunner;
-
-    private IEnumerator<Change> enumerator;
-    public IEnumerator<Change> Enumerator => enumerator ??= Run();
-
-    public virtual IEnumerator<Change> Run() {
-        yield break;
-    }
-
-    public virtual void Exit() { }
 }
