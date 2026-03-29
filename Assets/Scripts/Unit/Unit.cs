@@ -148,8 +148,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
         movement.ClearPath();
         movement.shouldMoveAlongPath = true;
     }
-
-
+    
     public bool AttackNow(IAttackTarget target) {
 
         if (Time.time - lastAttackTime < attackCooldown)
@@ -244,6 +243,13 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     private void CancelOrderIfTargetIsDestroyed(Object obj) {
         if (obj == currentOrder.TargetUnit || obj == currentOrder.TargetBuilding)
             CancelOrder();
+    }
+
+    public bool CanAttack(Building building) {
+        return building && owningPlayer != building.OwningPlayer;
+    }
+    public bool CanAttack(Unit otherUnit) {
+        return otherUnit && owningPlayer != otherUnit.OwningPlayer;
     }
 
     public int? Cost => cost;

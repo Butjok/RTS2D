@@ -212,9 +212,12 @@ public class PlayerController : WorldBehaviour {
 
                     if (targetUnit && targetBuilding)
                         targetBuilding = null;
-                    
+
                     foreach (var unit in selectedUnits)
-                        unit.SetOrder(new UnitOrder(moveDestination: formationPositions[unit], targetBuilding: targetBuilding, targetUnit: targetUnit));
+                        unit.SetOrder(new UnitOrder(
+                            moveDestination: formationPositions[unit],
+                            targetBuilding: unit.CanAttack(targetBuilding) ? targetBuilding : null,
+                            targetUnit: unit.CanAttack(targetUnit) ? targetUnit : null));
 
                     if (selectedUnits.Count > 0) {
                         var isAttackOrder = (bool)targetBuilding;
