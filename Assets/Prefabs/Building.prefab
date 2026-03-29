@@ -59,7 +59,9 @@ MonoBehaviour:
   world: {fileID: 0}
   owningPlayer: {fileID: 0}
   meshRenderer: {fileID: 7025007332706422122}
-  buildableUnits: []
+  buildableUnitPrefabs:
+  - {fileID: 8676087694340533686, guid: cbb1a2defcacc4ea2af8ce9538274c01, type: 3}
+  - {fileID: 8676087694340533686, guid: 92081db9d97d84699a8154bfcd1d188a, type: 3}
   sharedGhostMaterials:
   - {fileID: 2100000, guid: 1e91d09069d8e4742893af05d8627d11, type: 2}
   boxCollider: {fileID: 4935524242503908259}
@@ -68,7 +70,6 @@ MonoBehaviour:
   cost: 1000
   buildTime: 60
   prerequisites: []
-  buildingQueue: []
 --- !u!65 &4935524242503908259
 BoxCollider:
   m_ObjectHideFlags: 0

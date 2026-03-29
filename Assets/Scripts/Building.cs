@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Rendering.Universal;
 using UnityEngine;
 using UnityEngine.Serialization;
+using Object = UnityEngine.Object;
 
 public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBuildable, ICanBePrePlaced {
     [Serializable]
@@ -15,17 +17,21 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     }
 
     [Serializable]
-    public struct BuildingQueueItem {
-        [SerializeField] private Unit unitPrefab;
-        [SerializeField] private Building buildingPrefab;
+    public class BuildingQueueItem {
+        [SerializeField] private Object prefab;
         [SerializeField] private float timeElapsed;
 
-        public Unit UnitPrefab => unitPrefab;
-        public Building BuildingPrefab => buildingPrefab;
+        public Object Prefab => prefab;
 
         public float TimeElapsed {
             get => timeElapsed;
             set => timeElapsed = value;
+        }
+
+        public float BuildTime => ((IBuildable)prefab).BuildTime;
+
+        public BuildingQueueItem(IBuildable buildablePrefab) {
+            prefab = (Object)buildablePrefab;
         }
     }
 
@@ -34,7 +40,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
 
     [SerializeField] private Player owningPlayer;
     [SerializeField] private MeshRenderer meshRenderer;
-    [SerializeField] private List<Unit> buildableUnits = new();
+    [SerializeField] private List<Unit> buildableUnitPrefabs = new();
     [SerializeField] private List<Material> sharedGhostMaterials = new();
 
     [FormerlySerializedAs("buildingBoxCollider")] [SerializeField]
@@ -45,7 +51,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     [SerializeField] private int cost = 1000;
     [SerializeField] private float buildTime = 60;
     [SerializeField] private List<BuildingPrerequisite> prerequisites = new();
-    [SerializeField] private List<BuildingQueueItem> buildingQueue = new();
+    [SerializeField] private Queue<BuildingQueueItem> buildingQueue = new();
 
     private float health = 1;
 
@@ -154,7 +160,6 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
         meshRenderer.transform.localScale = startScale;
         meshRenderer.transform.localPosition = startLocalPosition;
         isFullyBuilt = true;
-        owningPlayer.NotifyBuildingConstructionComplete(this);
     }
 
     private void Die() {
@@ -181,6 +186,22 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
                 if (owningPlayer.GetBuildingsCountOf(prerequisite.BuildingPrefab) < prerequisite.RequiredCount)
                     return false;
             return true;
+        }
+    }
+
+    public void StartBuilding(Unit unitPrefab) {
+        Debug.Assert(buildableUnitPrefabs.Contains(unitPrefab));
+        buildingQueue.Enqueue(new BuildingQueueItem(unitPrefab));
+        World.AudioSystem.SayAnnouncerVoiceLine(World.AudioSystem.AnnouncerBuilding);
+    }
+
+    private void Update() {
+        if (buildingQueue.TryPeek(out var item)) {
+            item.TimeElapsed += Time.deltaTime;
+            if (item.TimeElapsed >= item.BuildTime) {
+                buildingQueue.Dequeue();
+                owningPlayer.NotifyConstructionComplete(this, item.Prefab);
+            }
         }
     }
 }

@@ -1,22 +1,24 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 public class Player : WorldBehaviour {
 
     public enum Kind {
-        Player, AI
+        Player,
+        AI
     }
-    
+
     [SerializeField] private int id = -1;
     [SerializeField] private PlayerController playerController;
     [SerializeField] private Color color;
     [SerializeField] private int credits;
     [SerializeField] private Kind kind = Kind.Player;
     [SerializeField] private readonly Dictionary<Building, int> buildingsOfTypeCount = new();
-    
-    public event Action<Building> onBuildingConstructionComplete;
-    public event Action<Building> onUnitConstructionComplete;
+
+    public event Action<Building, Building> onBuildingConstructionComplete;
+    public event Action<Building, Unit> onUnitConstructionComplete;
 
     public int Id => id;
     public bool IsAi => kind == Kind.AI;
@@ -56,11 +58,13 @@ public class Player : WorldBehaviour {
     public int GetBuildingsCountOf(Building building) {
         return buildingsOfTypeCount.TryGetValue(building, out var count) ? count : 0;
     }
-    
-    public void NotifyBuildingConstructionComplete(Building building) {
-        onBuildingConstructionComplete?.Invoke(building);
-    }
-    public void NotifyUnitConstructionComplete(Building building) {
-        onUnitConstructionComplete?.Invoke(building);
+
+    public void NotifyConstructionComplete(Building factory, Object prefab) {
+        var unit = prefab as Unit;
+        var building = prefab as Building;
+        if (building)
+            onBuildingConstructionComplete?.Invoke(factory, building);
+        if (unit)
+            onUnitConstructionComplete?.Invoke(factory, unit);
     }
 }

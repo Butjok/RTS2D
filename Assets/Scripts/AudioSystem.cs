@@ -53,14 +53,19 @@ public class AudioSystem : WorldBehaviour {
 
     private void Awake() {
         World.PlayerController.OwningPlayer.onBuildingConstructionComplete += OnBuildingConstructionComplete;
+        World.PlayerController.OwningPlayer.onUnitConstructionComplete += OnUnitConstructionComplete;
     }
 
     private void OnDestroy() {
         World.PlayerController.OwningPlayer.onBuildingConstructionComplete -= OnBuildingConstructionComplete;
+        World.PlayerController.OwningPlayer.onUnitConstructionComplete -= OnUnitConstructionComplete;
     }
 
-    private void OnBuildingConstructionComplete(Building building) {
+    private void OnBuildingConstructionComplete(Building factory, Building buildingPrefab) {
         announcerAudioSource.PlayOneShot(announcer_constructionComplete);
+    }
+    private void OnUnitConstructionComplete(Building factory, Unit unitPrefab) {
+        announcerAudioSource.PlayOneShot(announcer_unitReady);
     }
 
     private void Start() {

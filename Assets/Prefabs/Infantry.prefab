@@ -315,7 +315,7 @@ MonoBehaviour:
   owningPlayer: {fileID: 0}
   health: 1
   cost: 1000
-  buildTime: 15
+  buildTime: 3
   radiusInFormation: 0.5
   renderers:
   - {fileID: 3831960648216866428}
