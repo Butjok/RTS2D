@@ -322,7 +322,7 @@ MonoBehaviour:
   pathRenderer: {fileID: 3291945252028627405}
   selectionCircleRenderer: {fileID: 635482942073229039}
   attackRange: 3
-  attackCooldown: 1
+  attackCooldown: 1.5
   attackAnimation: {fileID: 788160061453090522}
   voicePriority: 0
   onSelectedVoiceLines:
