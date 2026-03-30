@@ -19,6 +19,7 @@ public class UnitCannonWeapon : UnitWeapon {
     [SerializeField] private AudioClip shotSound;
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private UnitTurret turret;
+    [SerializeField] private RoundTableSprite turretRoundTableSprite;
 
     private void OnValidate() {
         if (audioSource == null)
@@ -47,15 +48,16 @@ public class UnitCannonWeapon : UnitWeapon {
                 desiredRotation = Quaternion.LookRotation(direction);
         }
         turret.turretTransform.rotation = Quaternion.RotateTowards(turret.turretTransform.rotation, desiredRotation, turret.turretRotationSpeed * Time.deltaTime);
+
+        if (turretRoundTableSprite)
+            turretRoundTableSprite.Yaw = turret.turretTransform.eulerAngles.y;
     }
 
     protected override IEnumerator AttackAnimation_Internal(IAttackTarget target) {
-
         Debug.Assert(turret.muzzleTransforms.Count > 0);
 
         var muzzleIndex = 0;
         for (var i = 0; i < burstCount; i++) {
-
             if (!target.ObjectExists)
                 yield break;
 

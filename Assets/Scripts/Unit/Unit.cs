@@ -23,7 +23,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     [SerializeField] private List<Renderer> renderers = new();
     [SerializeField] private Renderer selectionCircleRenderer;
     
-    [FormerlySerializedAs("attackAnimation")] [SerializeField] private UnitWeapon weapon;
+    [SerializeField] private UnitWeapon weapon;
 
     [SerializeField] private int voicePriority;
     [SerializeField] private List<AudioClip> onSelectedVoiceLines = new();

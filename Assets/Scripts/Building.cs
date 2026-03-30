@@ -44,15 +44,14 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     [SerializeField] private List<Unit> buildableUnitPrefabs = new();
     [SerializeField] private List<Material> sharedGhostMaterials = new();
 
-    [FormerlySerializedAs("buildingBoxCollider")] [SerializeField]
-    private BoxCollider boxCollider;
+    [SerializeField] private BoxCollider boxCollider;
 
     [SerializeField] private bool isFullyBuilt = true;
     [SerializeField] private bool canEverBeSelected = true;
     [SerializeField] private int cost = 1000;
     [SerializeField] private float buildTime = 60;
     [SerializeField] private List<BuildingPrerequisite> prerequisites = new();
-    [SerializeField] private Queue<BuildingQueueItem> buildingQueue = new();
+    private readonly Queue<BuildingQueueItem> buildingQueue = new();
 
     private float health = 1;
     private float? lastDamageTime;

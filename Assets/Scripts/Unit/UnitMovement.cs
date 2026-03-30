@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+
 //using Drawing;
 using UnityEngine;
 
@@ -20,7 +21,8 @@ public class UnitMovement : MonoBehaviour {
     [SerializeField] private float requestOtherUnitToStepAsideTimeThreshold = .5f;
 
     [SerializeField] private AudioClip crushingAudioClip;
-    
+    [SerializeField] RoundTableSprite roundTableSprite;
+
     private readonly List<(Vector2 start, Vector2 end)> movePathSegments = new();
 
     private IEnumerator movementAnimationCoroutine;
@@ -60,12 +62,10 @@ public class UnitMovement : MonoBehaviour {
     }
 
     public bool FindPathToDestination() {
-
         ClearPath();
 
         if (unit.MoveDestination is { } actualMoveDestination &&
             unit.World.Grid.GridBasedAStar.FindPath(unit, actualMoveDestination, aStarPath)) {
-
             foreach (var node in aStarPath)
                 notSmoothPath.Add(unit.World.Grid.IndexToWorldPosition(node.index));
             notSmoothPath[notSmoothPath.Count - 1] = actualMoveDestination;
@@ -74,6 +74,7 @@ public class UnitMovement : MonoBehaviour {
 
             return true;
         }
+
         // ReSharper disable once RedundantIfElseBlock
         else {
             ClearPath();
@@ -82,7 +83,6 @@ public class UnitMovement : MonoBehaviour {
     }
 
     private IEnumerator MoveToCell(Vector2 end, Vector2Int endCell) {
-
         Debug.Assert(unit.World.Grid[endCell].isWalkable);
         var enemyUnit = unit.World.Grid[endCell].occupiedBy;
         Debug.Assert(!enemyUnit || CanCrush(enemyUnit));
@@ -159,7 +159,7 @@ public class UnitMovement : MonoBehaviour {
     private void OnDestroy() {
         if (unit && unit.World && unit.World.Grid) {
             unit.World.Grid[cell].occupiedBy = null;
-            if (ReservedCell is {} actualReservedCell) {
+            if (ReservedCell is { } actualReservedCell) {
                 Debug.Assert(unit.World.Grid[actualReservedCell].reservedBy == unit);
                 unit.World.Grid[actualReservedCell].reservedBy = null;
             }
@@ -167,10 +167,8 @@ public class UnitMovement : MonoBehaviour {
     }
 
     private void Update() {
-        
         pathRenderer.enabled = unit.IsSelected && MovePath.Count >= 2;
         if (pathRenderer.enabled) {
-
             movePathSegments.Clear();
             for (var segmentIndex = 0; segmentIndex < MovePath.Count - 1; segmentIndex++) {
                 var start = MovePath[segmentIndex];
@@ -190,6 +188,7 @@ public class UnitMovement : MonoBehaviour {
             for (var segmentIndex = 0; segmentIndex < smoothPathCells.Count - 1; segmentIndex++) {
                 var start = unit.World.Grid.IndexToWorldPosition(smoothPathCells[segmentIndex]);
                 var end = unit.World.Grid.IndexToWorldPosition(smoothPathCells[segmentIndex + 1]);
+
                 //Draw.ingame.Arrow(start.ToVector3(), end.ToVector3(), Vector3.up, .1f, Color.cyan);
             }
         }
@@ -222,7 +221,6 @@ public class UnitMovement : MonoBehaviour {
         }
 
         if (shouldMoveAlongPath && smoothPath.Count >= 2 && movementAnimationCoroutine == null) {
-
             Vector2Int? nextCell = null;
             for (var segmentStart = smoothPathCells.Count - 1; segmentStart >= 0; segmentStart--)
                 if (smoothPathCells[segmentStart] == cell) {
@@ -267,7 +265,6 @@ public class UnitMovement : MonoBehaviour {
 
             // unit got off move path
             else {
-
                 //Draw.ingame.Label3D(transform.position + Vector3.up, Quaternion.identity, "Off the path!", .1f);
 
                 if (offThePathTime == null)
@@ -281,6 +278,9 @@ public class UnitMovement : MonoBehaviour {
                 }
             }
         }
+
+        if (roundTableSprite)
+            roundTableSprite.Yaw = transform.rotation.eulerAngles.y;
     }
 
     public void ClearPath() {
