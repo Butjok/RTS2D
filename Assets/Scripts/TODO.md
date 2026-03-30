@@ -1,2 +1,3 @@
+- Step aside logic in not robust. Imagine a unit in the way -> it is asked to step aside, but it can't. The initial moving unit will be stuck -> will try to repath and it will repath by exactly the same path. It will try to ask the unit in the way to step aside one more time and it repeats.
 - Path smoothing does not work properly. It does not take into account units which you cannot push.
 - Currently if the unit if off the path it requests repathing instead of trying to add a straight line path to the closest point on the path.
