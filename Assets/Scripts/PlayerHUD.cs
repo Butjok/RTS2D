@@ -129,7 +129,7 @@ public class PlayerHUD : WorldBehaviour {
         }
 
         foreach (var selectable in World.Selectables)
-            if (selectable.IsSelected && selectable is IHasHealth selectableHealth) {
+            if (selectable is IHasHealth health && (selectable.IsSelected || health.LastDamageTime.HasValue && Time.time - health.LastDamageTime.Value <= 5)) {
                 var onScreenBounds = GetOnScreenBounds(selectable.SelectionBounds, owningPlayerController.PlayerCamera);
                 var healthBarRectangle = ToGUICoordinates(new Rect(
                     onScreenBounds.xMin, onScreenBounds.yMin - unitHealthBarHeight,
@@ -144,14 +144,14 @@ public class PlayerHUD : WorldBehaviour {
                 DrawRectangle(healthBarBackgroundRectangle, unitHealthBarGUIStyle);
 
                 var healthBarFilledRectangle = healthBarRectangle;
-                healthBarFilledRectangle.width = healthBarRectangle.width * selectableHealth.Health;
+                healthBarFilledRectangle.width = healthBarRectangle.width * health.Health;
 
                 var intervalStart = .0f;
                 GUIStyle fillStyle = null;
                 for (var i = 0; i < unitHealthBarColorRamp.Count; i++) {
                     var rampPoint = unitHealthBarColorRamp[i];
                     var intervalEnd = rampPoint.end;
-                    if (selectableHealth.Health >= intervalStart && selectableHealth.Health <= intervalEnd) {
+                    if (health.Health >= intervalStart && health.Health <= intervalEnd) {
                         fillStyle = rampPoint.style;
                         break;
                     }

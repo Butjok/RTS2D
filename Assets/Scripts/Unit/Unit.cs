@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -40,6 +38,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
 
     private MaterialPropertyBlock materialPropertyBlock;
     private Color? playerColor;
+    private float? lastDamageTime;
 
     public UnitMovement Movement => movement;
     public float RadiusInFormation => radiusInFormation;
@@ -77,6 +76,8 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
                 Die();
         }
     }
+
+    public float? LastDamageTime => lastDamageTime;
 
     public void Initialize(World world, Unit prefab, Player owningPlayer) {
         base.Initialize(world, prefab);
@@ -151,6 +152,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     public Vector3 PositionToBeAttackedAt => transform.position;
 
     public void ReceiveAttackFrom(Unit attacker) {
+        lastDamageTime = Time.time;
         var damage = World.DamageStats.GetDamage((Unit)attacker.Prefab, (Unit)Prefab);
         Health -= damage;
     }

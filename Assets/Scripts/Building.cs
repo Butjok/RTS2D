@@ -55,6 +55,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     [SerializeField] private Queue<BuildingQueueItem> buildingQueue = new();
 
     private float health = 1;
+    private float? lastDamageTime;
 
     private bool playConstructionAnimationOnStart;
     private IEnumerator constructionAnimationCoroutine;
@@ -170,6 +171,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     public Vector3 PositionToBeAttackedAt => meshRenderer.bounds.center;
 
     public void ReceiveAttackFrom(Unit attacker) {
+        lastDamageTime = Time.time;
         var damage = World.DamageStats.GetDamage((Unit)attacker.Prefab, (Building)Prefab);
         Health -= damage;
     }
@@ -203,8 +205,16 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
             item.TimeElapsed += Time.deltaTime;
             if (item.TimeElapsed >= item.BuildTime) {
                 buildingQueue.Dequeue();
-                owningPlayer.NotifyConstructionComplete(this, item.Prefab);
+                if (owningPlayer.PlayerController) 
+                    owningPlayer.PlayerController.NotifyConstructionComplete(this, item.Prefab);
             }
         }
     }
+
+    private void OnDestroy() {
+        if (owningPlayer.PlayerController) 
+            owningPlayer.PlayerController.RemovePrimaryBuilding(this);
+    }
+    
+    public float? LastDamageTime => lastDamageTime;
 }

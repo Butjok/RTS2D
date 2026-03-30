@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 public class PlayerController : WorldBehaviour {
 
@@ -55,6 +56,12 @@ public class PlayerController : WorldBehaviour {
     public Vector2 MarqueeEnd => marqueeEnd;
     public PlayerHUD PlayerHUD => playerHUD;
     public Player OwningPlayer => owningPlayer;
+    
+    public event Action<Building, Building> onBuildingConstructionComplete;
+    public event Action<Building, Unit> onUnitConstructionComplete;
+    public event Action<Building> onPrimaryBuildingSelected;
+
+    private readonly Dictionary<Building, Building> primaryBuildings = new();
 
     public void Initialize(World world, PlayerController prefab, Player player) {
         base.Initialize(world, prefab);
@@ -306,5 +313,28 @@ public class PlayerController : WorldBehaviour {
                 return false;
         }
         return true;
+    }
+
+    public void SetPrimaryBuilding(Building buildingPrefab, Building building) {
+        if (primaryBuildings.ContainsKey(buildingPrefab)) {
+            primaryBuildings[buildingPrefab] = building;
+            onPrimaryBuildingSelected?.Invoke(building);
+        }
+        else
+            primaryBuildings.Add(buildingPrefab, building);
+    }
+    
+    public void RemovePrimaryBuilding(Building building) {
+        if (primaryBuildings.TryGetValue((Building)building.Prefab, out var primaryBuilding) && primaryBuilding == building) 
+            primaryBuildings.Remove((Building)building.Prefab);
+    }
+    
+    public void NotifyConstructionComplete(Building factory, Object prefab) {
+        var unit = prefab as Unit;
+        var building = prefab as Building;
+        if (building)
+            onBuildingConstructionComplete?.Invoke(factory, building);
+        if (unit)
+            onUnitConstructionComplete?.Invoke(factory, unit);
     }
 }

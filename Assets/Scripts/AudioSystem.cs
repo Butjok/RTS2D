@@ -29,6 +29,7 @@ public class AudioSystem : WorldBehaviour {
     [SerializeField] private AudioClip announcer_newObjective;
     [SerializeField] private AudioClip announcer_unitLost;
     [SerializeField] private AudioClip announcer_unitReady;
+    [SerializeField] private AudioClip announcer_primaryBuildingSelected;
 
     public AudioClip AnnouncerBattleControlActivated => announcer_battleControlActivated;
     public AudioClip AnnouncerBattleControlDeactivated => announcer_battleControlDeactivated;
@@ -52,20 +53,25 @@ public class AudioSystem : WorldBehaviour {
     }
 
     private void Awake() {
-        World.PlayerController.OwningPlayer.onBuildingConstructionComplete += OnBuildingConstructionComplete;
-        World.PlayerController.OwningPlayer.onUnitConstructionComplete += OnUnitConstructionComplete;
+        World.PlayerController.onBuildingConstructionComplete += OnBuildingConstructionComplete;
+        World.PlayerController.onUnitConstructionComplete += OnUnitConstructionComplete;
+        World.PlayerController.onPrimaryBuildingSelected += OnPrimaryBuildingSelected;
     }
 
     private void OnDestroy() {
-        World.PlayerController.OwningPlayer.onBuildingConstructionComplete -= OnBuildingConstructionComplete;
-        World.PlayerController.OwningPlayer.onUnitConstructionComplete -= OnUnitConstructionComplete;
+        World.PlayerController.onBuildingConstructionComplete -= OnBuildingConstructionComplete;
+        World.PlayerController.onUnitConstructionComplete -= OnUnitConstructionComplete;
+        World.PlayerController.onPrimaryBuildingSelected -= OnPrimaryBuildingSelected;
     }
 
     private void OnBuildingConstructionComplete(Building factory, Building buildingPrefab) {
-        announcerAudioSource.PlayOneShot(announcer_constructionComplete);
+        SayAnnouncerVoiceLine(announcer_constructionComplete);
     }
     private void OnUnitConstructionComplete(Building factory, Unit unitPrefab) {
-        announcerAudioSource.PlayOneShot(announcer_unitReady);
+        SayAnnouncerVoiceLine(announcer_unitReady);
+    }
+    private void OnPrimaryBuildingSelected(Building primaryBuilding) {
+         SayAnnouncerVoiceLine(announcer_primaryBuildingSelected);
     }
 
     private void Start() {
