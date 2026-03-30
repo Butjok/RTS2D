@@ -64,7 +64,7 @@ public static class PathSmoother {
 
         var offset = end - start;
 
-        var startCellPosition = grid.IndexToWorldPosition(startIndex);
+        var startCellPosition = grid.CellToWorldPosition(startIndex);
         var border = startCellPosition + cellSize * new Vector2(
             offset.x > 0 ? .5f : -.5f,
             offset.y > 0 ? .5f : -.5f);

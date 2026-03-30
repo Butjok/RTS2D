@@ -58,7 +58,7 @@ public class Grid : WorldBehaviour {
         );
     }
 
-    public static Vector2 IndexToWorldPosition(Vector2Int index, Vector2 minCellPosition) {
+    public static Vector2 CellToWorldPosition(Vector2Int index, Vector2 minCellPosition) {
         return new Vector2(
             (index.x + minCellPosition.x) * cellSize,
             (index.y + minCellPosition.y) * cellSize
@@ -87,8 +87,8 @@ public class Grid : WorldBehaviour {
     public Vector2Int WorldPositionToCell(Vector2 position) {
         return WorldPositionToCell(position, minCellPosition);
     }
-    public Vector2 IndexToWorldPosition(Vector2Int index) {
-        return IndexToWorldPosition(index, minCellPosition);
+    public Vector2 CellToWorldPosition(Vector2Int index) {
+        return CellToWorldPosition(index, minCellPosition);
     }
 
     public (Vector2Int min, Vector2Int max) GetMinMaxIndices(Bounds bounds) {
@@ -137,6 +137,17 @@ public class Grid : WorldBehaviour {
             this[index].isWalkable = false;
 
         gridBasedAStar = new GridBasedAStar(this);
+        
+        // find pre-placed gold
+        var prePlacedGolds = FindObjectsByType<PrePlacedGold>(FindObjectsSortMode.None);
+        foreach (var prePlacedGold in prePlacedGolds) {
+            Debug.Assert(prePlacedGold.Amount > 0, $"PrePlacedGold {prePlacedGold.name} has non-positive amount {prePlacedGold.Amount}");
+            var cell = WorldPositionToCell(prePlacedGold.transform.position.ToVector2());
+            if (InBounds(cell)) {
+                Debug.Assert(this[cell].goldAmount == 0, $"Multiple golds at location {CellToWorldPosition(cell)}");
+                this[cell].goldAmount = prePlacedGold.Amount;
+            }
+        }
     }
 
     private void OnValidate() {

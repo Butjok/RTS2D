@@ -67,7 +67,7 @@ public class UnitMovement : MonoBehaviour {
         if (unit.CurrentOrder.MoveDestination is { } actualMoveDestination &&
             unit.World.Grid.GridBasedAStar.FindPath(unit, actualMoveDestination, aStarPath)) {
             foreach (var node in aStarPath)
-                notSmoothPath.Add(unit.World.Grid.IndexToWorldPosition(node.index));
+                notSmoothPath.Add(unit.World.Grid.CellToWorldPosition(node.index));
             notSmoothPath[notSmoothPath.Count - 1] = actualMoveDestination;
 
             PathSmoother.SmoothenPath(unit.World.Grid, smoothPath, notSmoothPath, smoothPathCells);
@@ -152,7 +152,7 @@ public class UnitMovement : MonoBehaviour {
         Debug.Assert(!unit.World.Grid[cell].occupiedBy);
         Debug.Assert(!unit.World.Grid[cell].reservedBy);
 
-        transform.position = unit.World.Grid.IndexToWorldPosition(cell).ToVector3();
+        transform.position = unit.World.Grid.CellToWorldPosition(cell).ToVector3();
         unit.World.Grid[cell].occupiedBy = unit;
     }
 
@@ -186,8 +186,8 @@ public class UnitMovement : MonoBehaviour {
 
         if (unit.IsSelected && unit.OwningPlayer.PlayerController && unit.OwningPlayer.PlayerController.showMovePathCells) {
             for (var segmentIndex = 0; segmentIndex < smoothPathCells.Count - 1; segmentIndex++) {
-                var start = unit.World.Grid.IndexToWorldPosition(smoothPathCells[segmentIndex]);
-                var end = unit.World.Grid.IndexToWorldPosition(smoothPathCells[segmentIndex + 1]);
+                var start = unit.World.Grid.CellToWorldPosition(smoothPathCells[segmentIndex]);
+                var end = unit.World.Grid.CellToWorldPosition(smoothPathCells[segmentIndex + 1]);
 
                 //Draw.ingame.Arrow(start.ToVector3(), end.ToVector3(), Vector3.up, .1f, Color.cyan);
             }
@@ -214,7 +214,7 @@ public class UnitMovement : MonoBehaviour {
             if (freeCell is { } actualFreeCell) {
                 unit.World.Grid[actualFreeCell].reservedBy = unit;
                 movementAnimationCoroutine = MoveToCell(
-                    unit.World.Grid.IndexToWorldPosition(actualFreeCell),
+                    unit.World.Grid.CellToWorldPosition(actualFreeCell),
                     actualFreeCell);
                 StartCoroutine(movementAnimationCoroutine);
             }
@@ -235,7 +235,7 @@ public class UnitMovement : MonoBehaviour {
                 if (!unitInTheWay && !unit.World.Grid[actualNextCell].reservedBy) {
                     unit.World.Grid[actualNextCell].reservedBy = unit;
                     movementAnimationCoroutine = MoveToCell(
-                        MathUtility.FindClosestPointOnPolyline(unit.World.Grid.IndexToWorldPosition(actualNextCell), smoothPath, out _, out _, out var isEndOfPolyline),
+                        MathUtility.FindClosestPointOnPolyline(unit.World.Grid.CellToWorldPosition(actualNextCell), smoothPath, out _, out _, out var isEndOfPolyline),
                         actualNextCell);
                     StartCoroutine(movementAnimationCoroutine);
                 }

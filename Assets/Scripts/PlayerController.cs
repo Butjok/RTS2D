@@ -171,7 +171,7 @@ public class PlayerController : WorldBehaviour {
                 }
 
                 if (shouldSelectSingleEntity)
-                    selectedEntities.RemoveAll(e => e != closestUnit && e != closestBuilding);
+                    selectedEntities.RemoveAll(e => e != (object)closestUnit && e != (object)closestBuilding);
 
                 foreach (var selectable in selectedEntities)
                     if (selectable.ObjectExists && !oldSelectedEntitiesSet.Contains(selectable))
@@ -224,13 +224,13 @@ public class PlayerController : WorldBehaviour {
 
                     foreach (var unit in selectedUnits) {
                         if (targetUnit)
-                            unit.SetOrder(UnitOrder.Attack(targetUnit, formationPositions[unit]));
+                            unit.SetOrder(UnitOrder.Attack(this,targetUnit, formationPositions[unit]));
                         else if (targetBuilding)
-                            unit.SetOrder(UnitOrder.Attack(targetBuilding, formationPositions[unit]));
+                            unit.SetOrder(UnitOrder.Attack(this,targetBuilding, formationPositions[unit]));
                         else if (World.Grid[targetCell].HasGold && unit.GetComponent<HarvesterLogic>())
-                            unit.SetOrder(UnitOrder.Harvest(targetCell, formationPositions[unit]));
+                            unit.SetOrder(UnitOrder.Harvest(this,targetCell, formationPositions[unit]));
                         else
-                            unit.SetOrder(UnitOrder.Move(formationPositions[unit]));
+                            unit.SetOrder(UnitOrder.Move(this,formationPositions[unit]));
                     }
 
                     if (selectedUnits.Count > 0) {

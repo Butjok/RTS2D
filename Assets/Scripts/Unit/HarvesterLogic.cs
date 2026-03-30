@@ -14,31 +14,46 @@ public class HarvesterLogic : MonoBehaviour {
     private IEnumerator unloadingAnimationCoroutine;
 
     private void Update() {
+        
         if (unit.CurrentOrder == null) {
             if (loadedAmount < 1) {
                 // find closest cell with gold (closest in terms of spiral order, not actual distance, for performance reasons)
                 foreach (var offset in UnitFormation.EnumerateInSpiral(50)) {
                     var cell = unit.Movement.Cell + offset;
                     if (unit.World.Grid.InBounds(cell) && unit.World.Grid[cell].HasGold) {
-                        unit.SetOrder(UnitOrder.Harvest(cell, unit.World.Grid.IndexToWorldPosition(cell)));
+                        unit.SetOrder(UnitOrder.Harvest(this, cell, unit.World.Grid.CellToWorldPosition(cell)));
                         break;
                     }
                 }
             }
             else
-                unit.SetOrder(UnitOrder.Unload(homeBase));
+                unit.SetOrder(UnitOrder.Unload(this, homeBase));
         }
-        else {
-            if (loadedAmount >= 1)
-                unit.SetOrder(UnitOrder.Unload(homeBase));
-            else if (unit.World.Grid[unit.Movement.Cell].HasGold && harvestingAnimationCoroutine == null) {
-                harvestingAnimationCoroutine = HarvestingAnimation();
-                StartCoroutine(harvestingAnimationCoroutine);
+        
+        else if (unit.CurrentOrder.OrderKind == UnitOrder.Kind.Unload && 
+                 unit.Movement.Cell == homeBase.GoldDepositionCell) {
+            
+            unloadingAnimationCoroutine = UnloadingAnimation();
+            StartCoroutine(unloadingAnimationCoroutine);
+        }
+        
+        else if (loadedAmount >= 1) {
+            if (unit.CurrentOrder.Source == this)
+                unit.SetOrder(UnitOrder.Unload(this, homeBase));
+        }
+
+        else if (
+            unit.CurrentOrder.OrderKind == UnitOrder.Kind.Harvest &&
+            unit.Movement.Cell == unit.World.Grid.WorldPositionToCell(unit.CurrentOrder.MoveDestination)) {
+
+            if (unit.World.Grid[unit.Movement.Cell].HasGold) {
+                if (harvestingAnimationCoroutine == null) {
+                    harvestingAnimationCoroutine = HarvestingAnimation();
+                    StartCoroutine(harvestingAnimationCoroutine);
+                }
             }
-            else if (unit.CurrentOrder.OrderKind == UnitOrder.Kind.Unload && unit.Movement.Cell == homeBase.GoldDepositionCell && unloadingAnimationCoroutine==null) {
-                unloadingAnimationCoroutine = UnloadingAnimation();
-                StartCoroutine(unloadingAnimationCoroutine);
-            }
+            else
+                unit.CancelOrder();
         }
     }
 
@@ -64,17 +79,17 @@ public class HarvesterLogic : MonoBehaviour {
             yield return null;
         }
 
-        
+
         harvestingAnimationCoroutine = null;
     }
 
     private IEnumerator UnloadingAnimation() {
         Debug.Assert(unit.Movement.Cell == homeBase.GoldDepositionCell);
-        
+
         while (loadedAmount >= 0) {
             var maxTransferredThisFrame = Time.deltaTime * unloadingSpeed;
             var transferredThisFrame = Mathf.Min(maxTransferredThisFrame, loadedAmount);
-            
+
             loadedAmount = Mathf.Max(loadedAmount - transferredThisFrame, 0);
             homeBase.AddGold(transferredThisFrame);
 

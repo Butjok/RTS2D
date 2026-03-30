@@ -35,6 +35,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     [SerializeField] private Kind kind = Kind.Infantry;
 
     [SerializeField] private AudioSource effectsAudioSource;
+    [SerializeField] private MonoBehaviour orderSource;
 
     private MaterialPropertyBlock materialPropertyBlock;
     private Color? playerColor;

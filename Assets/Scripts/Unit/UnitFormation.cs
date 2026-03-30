@@ -108,7 +108,7 @@ public static class UnitFormation {
                 var projectedCell = cell + offset;
                 if (grid[projectedCell].isWalkable && !occupied.Contains(projectedCell)) {
                     occupied.Add(projectedCell);
-                    var projectedPosition = grid.IndexToWorldPosition(projectedCell);
+                    var projectedPosition = grid.CellToWorldPosition(projectedCell);
                     positions[unit] = projectedPosition;
                     break;
                 }

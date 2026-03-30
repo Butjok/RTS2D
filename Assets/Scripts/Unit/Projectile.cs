@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [RequireComponent( typeof(AudioSource))]
 public class Projectile : WorldBehaviour {
@@ -8,7 +9,7 @@ public class Projectile : WorldBehaviour {
     private const int maxDamagedColliders = 10;
     
     [SerializeField] private Unit owningUnit;
-    [SerializeField] private Renderer renderer;
+    [FormerlySerializedAs("renderer")] [SerializeField] private Renderer projectileRenderer;
     [SerializeField] private Vector3 target;
     [SerializeField] private float speed = 3;
     [SerializeField] private float explosionRadius = 1;
@@ -24,8 +25,8 @@ public class Projectile : WorldBehaviour {
     }
     
     private void OnValidate() {
-        if (!renderer )
-            renderer = GetComponent<Renderer>();
+        if (!projectileRenderer )
+            projectileRenderer = GetComponent<Renderer>();
         if (!audioSource )
             audioSource = GetComponent<AudioSource>();
     }
@@ -44,7 +45,7 @@ public class Projectile : WorldBehaviour {
 
     private void Explode() {
         enabled = false;
-        renderer.enabled = false;
+        projectileRenderer.enabled = false;
         audioSource.Play();
         
         var clipLength = audioSource.clip ? audioSource.clip.length : 0;

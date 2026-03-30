@@ -40,7 +40,7 @@ public class UnitCannonWeapon : UnitWeapon {
     // rotate turret to target or forward if no target
     private void Update() {
         var desiredRotation = OwningUnit.transform.rotation;
-        if (OwningUnit.CurrentOrder.AttackTarget != null && OwningUnit.CurrentOrder.AttackTarget.ObjectExists) {
+        if (OwningUnit.CurrentOrder != null && OwningUnit.CurrentOrder.AttackTarget != null && OwningUnit.CurrentOrder.AttackTarget.ObjectExists) {
             var targetPosition = OwningUnit.CurrentOrder.AttackTarget.PositionToBeAttackedAt;
             var direction = targetPosition - turret.turretTransform.position;
             direction.Scale(new Vector3(1, 0, 1)); // ignore vertical difference for turret rotation
