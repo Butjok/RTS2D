@@ -7,8 +7,8 @@ public abstract class UnitWeapon : MonoBehaviour {
     [SerializeField] private Unit owningUnit;
     [SerializeField] private float attackRange = 3;
     [SerializeField] private float attackCooldown = .5f;
-    [SerializeField] private float? lastAttackTime;
-
+    
+    private float? lastAttackTime;
     protected IEnumerator attackAnimationCoroutine;
 
     protected Unit OwningUnit => owningUnit;
@@ -17,21 +17,22 @@ public abstract class UnitWeapon : MonoBehaviour {
         CancelAttackAnimation();
     }
 
-    protected virtual bool CanFireNow {
+    protected bool IsNotOnCooldown {
         get {
             var elapsedTime = Time.time - (lastAttackTime ?? -999);
             return elapsedTime >= attackCooldown;
         }
     }
 
-    public virtual bool CanEverAttack(IAttackTarget attackTarget) {
+    public bool IsInAttackRange(IAttackTarget attackTarget) {
         return attackTarget != null &&
                attackTarget.ObjectExists &&
                DistanceTo(attackTarget) <= attackRange;
     }
-    public virtual bool CanAttackNow(IAttackTarget attackTarget) {
-        return CanFireNow &&
-               CanEverAttack(attackTarget);
+
+    protected virtual bool CanAttackNow(IAttackTarget attackTarget) {
+        return IsNotOnCooldown &&
+               IsInAttackRange(attackTarget);
     }
 
     public bool AttackNow(IAttackTarget attackTarget) {

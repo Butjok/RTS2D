@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 //using Drawing;
@@ -31,9 +30,9 @@ public class UnitMovement : MonoBehaviour {
     private float? offThePathTime;
 
     /// If true, the unit is standing in the way of another unit, and will try to move to a nearby cell to get out of the way.
-    public List<Unit> wasRequestToStepAsideBy = new();
+    public List<Unit> wasRequestedToStepAsideBy = new();
 
-    public bool ShouldStepAside => wasRequestToStepAsideBy.Count > 0;
+    public bool ShouldStepAside => wasRequestedToStepAsideBy.Count > 0;
 
     /// Raw A* output with axis-aligned nodes with ever tile of the path represented as grid index-based node.
     /// It is dense, meaning that every single tile of the path is represented as a node, even if there are multiple consecutive tiles in a straight line.
@@ -201,7 +200,7 @@ public class UnitMovement : MonoBehaviour {
             ClearPath();
 
         if (movementAnimationCoroutine == null && ShouldStepAside) {
-            wasRequestToStepAsideBy.Clear();
+            wasRequestedToStepAsideBy.Clear();
 
             // find a random nearby cell that is not occupied or reserved and move there
             Vector2Int? freeCell = null;
@@ -248,7 +247,7 @@ public class UnitMovement : MonoBehaviour {
                     else {
                         requestOtherUnitToStepAsideTimer += Time.deltaTime;
                         if (requestOtherUnitToStepAsideTimer > requestOtherUnitToStepAsideTimeThreshold) {
-                            unitInTheWay.Movement.wasRequestToStepAsideBy.Add(unit);
+                            unitInTheWay.Movement.wasRequestedToStepAsideBy.Add(unit);
                             requestOtherUnitToStepAsideTimer = null;
                         }
                     }

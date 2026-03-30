@@ -25,7 +25,7 @@ public class UnitCannonWeapon : UnitWeapon {
             audioSource = GetComponent<AudioSource>();
     }
 
-    public override bool CanAttackNow(IAttackTarget attackTarget) {
+    protected override bool CanAttackNow(IAttackTarget attackTarget) {
         if (!base.CanAttackNow(attackTarget))
             return false;
         var turretRotation = turret.turretTransform.rotation;

@@ -132,7 +132,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     
     private void Update() {
         // If we have an attack target and it's in range -> attack it, otherwise move towards it 
-        if (weapon.CanEverAttack(currentOrder.AttackTarget)) {
+        if (weapon.IsInAttackRange(currentOrder.AttackTarget)) {
             weapon.AttackNow(currentOrder.AttackTarget);
             movement.shouldMoveAlongPath = false;
         }
