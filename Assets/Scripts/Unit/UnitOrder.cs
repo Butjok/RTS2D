@@ -1,36 +1,66 @@
 using System;
 using UnityEngine;
 
-/**
- * <summary>
- * Represents an order for a unit to execute. This can be either a move order (with a destination) or an attack order (with a target unit or building).
- * </summary>
- */
 [Serializable]
-public struct UnitOrder {
+public class UnitOrder {
 
-    [SerializeField] private Vector2? moveDestination;
+    public enum Kind {
+        Move,
+        Attack,
+        Harvest,
+        Unload
+    }
+
+    [SerializeField] private Kind kind;
+    [SerializeField] private Vector2 moveDestination;
     [SerializeField] private Unit targetUnit;
     [SerializeField] private Building targetBuilding;
+    [SerializeField] private Vector2Int? harvestingCell;
+    private float creationTime;
 
-    public Vector2? MoveDestination => moveDestination;
+    public Vector2 MoveDestination => moveDestination;
     public Unit TargetUnit => targetUnit;
     public Building TargetBuilding => targetBuilding;
     public IAttackTarget AttackTarget => targetUnit ? targetUnit : targetBuilding;
+    public float Age => Time.time - creationTime;
+    public Kind OrderKind => kind;
 
-    public UnitOrder(Vector2 moveDestination, Unit targetUnit = null, Building targetBuilding = null) {
-        Debug.Assert(!targetUnit && !targetBuilding ||
-                     targetUnit ^ targetBuilding,
-            "An order can have either a target unit or a target building, but not both");
-
-        this.moveDestination = moveDestination;
-        this.targetUnit = targetUnit;
-        this.targetBuilding = targetBuilding;
+    public static UnitOrder Move(Vector2 destination) {
+        return new UnitOrder {
+            kind = Kind.Move,
+            moveDestination = destination
+        };
     }
 
-    public void Clear() {
-        moveDestination = null;
-        targetUnit = null;
-        targetBuilding = null;
+    public static UnitOrder Attack(Unit targetUnit, Vector2 destination) {
+        return new UnitOrder {
+            kind = Kind.Attack,
+            moveDestination = destination,
+            targetUnit = targetUnit
+        };
+    }
+
+    public static UnitOrder Attack(Building targetBuilding, Vector2 destination) {
+        return new UnitOrder {
+            kind = Kind.Attack,
+            moveDestination = destination,
+            targetBuilding = targetBuilding
+        };
+    }
+
+    public static UnitOrder Harvest(Vector2Int harvestingCell, Vector2 destination) {
+        return new UnitOrder {
+            kind = Kind.Harvest,
+            moveDestination = destination,
+            harvestingCell = harvestingCell
+        };
+    }
+
+    public static UnitOrder Unload(RefineryBuilding refinery) {
+        return new UnitOrder {
+            kind = Kind.Unload,
+            moveDestination = refinery.transform.position.ToVector2() + refinery.GoldDepositPosition,
+            targetBuilding = refinery
+        };
     }
 }

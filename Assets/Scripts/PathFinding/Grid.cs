@@ -20,6 +20,8 @@ public class Grid : WorldBehaviour {
         public Unit occupiedBy;
         public Unit reservedBy;
         public bool isWalkable;
+        public float goldAmount;
+        public bool HasGold => goldAmount > 0;
     }
 
     public static readonly IReadOnlyList<Vector2Int> moveDirections = new[] {

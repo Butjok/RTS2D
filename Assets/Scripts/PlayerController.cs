@@ -56,10 +56,11 @@ public class PlayerController : WorldBehaviour {
     public Vector2 MarqueeEnd => marqueeEnd;
     public PlayerHUD PlayerHUD => playerHUD;
     public Player OwningPlayer => owningPlayer;
-    
+
     public event Action<Building, Building> onBuildingConstructionComplete;
     public event Action<Building, Unit> onUnitConstructionComplete;
     public event Action<Building> onPrimaryBuildingSelected;
+    public event Action<RefineryBuilding,float> onGoldAdded;
 
     private readonly Dictionary<Building, Building> primaryBuildings = new();
 
@@ -207,8 +208,9 @@ public class PlayerController : WorldBehaviour {
                     selectedUnits.AddRange(selectedEntities.OfType<Unit>());
 
                     var targetPosition = hitInfo.point.ToVector2();
+                    var targetCell = World.Grid.WorldPositionToCell(targetPosition);
                     var targetBuilding = hitInfo.collider.GetComponent<Building>();
-                    var targetUnit =    hitInfo.collider.GetComponent<Unit>();
+                    var targetUnit = hitInfo.collider.GetComponent<Unit>();
 
                     formationPositions.Clear();
                     foreach (var unit in selectedUnits)
@@ -220,11 +222,16 @@ public class PlayerController : WorldBehaviour {
                     if (targetUnit && targetBuilding)
                         targetBuilding = null;
 
-                    foreach (var unit in selectedUnits)
-                        unit.SetOrder(new UnitOrder(
-                            moveDestination: formationPositions[unit],
-                            targetBuilding: unit.CanAttack(targetBuilding) ? targetBuilding : null,
-                            targetUnit: unit.CanAttack(targetUnit) ? targetUnit : null));
+                    foreach (var unit in selectedUnits) {
+                        if (targetUnit)
+                            unit.SetOrder(UnitOrder.Attack(targetUnit, formationPositions[unit]));
+                        else if (targetBuilding)
+                            unit.SetOrder(UnitOrder.Attack(targetBuilding, formationPositions[unit]));
+                        else if (World.Grid[targetCell].HasGold && unit.GetComponent<HarvesterLogic>())
+                            unit.SetOrder(UnitOrder.Harvest(targetCell, formationPositions[unit]));
+                        else
+                            unit.SetOrder(UnitOrder.Move(formationPositions[unit]));
+                    }
 
                     if (selectedUnits.Count > 0) {
                         var isAttackOrder = (bool)targetBuilding;
@@ -323,12 +330,12 @@ public class PlayerController : WorldBehaviour {
         else
             primaryBuildings.Add(buildingPrefab, building);
     }
-    
+
     public void RemovePrimaryBuilding(Building building) {
-        if (primaryBuildings.TryGetValue((Building)building.Prefab, out var primaryBuilding) && primaryBuilding == building) 
+        if (primaryBuildings.TryGetValue((Building)building.Prefab, out var primaryBuilding) && primaryBuilding == building)
             primaryBuildings.Remove((Building)building.Prefab);
     }
-    
+
     public void NotifyConstructionComplete(Building factory, Object prefab) {
         var unit = prefab as Unit;
         var building = prefab as Building;
@@ -336,5 +343,9 @@ public class PlayerController : WorldBehaviour {
             onBuildingConstructionComplete?.Invoke(factory, building);
         if (unit)
             onUnitConstructionComplete?.Invoke(factory, unit);
+    }
+    
+    public void NotifyGoldAdded(RefineryBuilding refinery, float amountAdded) {
+        onGoldAdded?.Invoke(refinery, amountAdded);
     }
 }

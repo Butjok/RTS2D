@@ -64,7 +64,7 @@ public class UnitMovement : MonoBehaviour {
     public bool FindPathToDestination() {
         ClearPath();
 
-        if (unit.MoveDestination is { } actualMoveDestination &&
+        if (unit.CurrentOrder.MoveDestination is { } actualMoveDestination &&
             unit.World.Grid.GridBasedAStar.FindPath(unit, actualMoveDestination, aStarPath)) {
             foreach (var node in aStarPath)
                 notSmoothPath.Add(unit.World.Grid.IndexToWorldPosition(node.index));

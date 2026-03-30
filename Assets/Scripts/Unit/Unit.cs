@@ -22,7 +22,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
 
     [SerializeField] private List<Renderer> renderers = new();
     [SerializeField] private Renderer selectionCircleRenderer;
-    
+
     [SerializeField] private UnitWeapon weapon;
 
     [SerializeField] private int voicePriority;
@@ -31,7 +31,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     [SerializeField] private List<AudioClip> onAttackOrderVoiceLines = new();
     [SerializeField] private List<AudioClip> deathScreams = new();
 
-    [SerializeField] private UnitOrder currentOrder = new();
+    [SerializeField] private UnitOrder currentOrder;
     [SerializeField] private Kind kind = Kind.Infantry;
 
     [SerializeField] private AudioSource effectsAudioSource;
@@ -42,8 +42,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
 
     public UnitMovement Movement => movement;
     public float RadiusInFormation => radiusInFormation;
-    public Vector2? MoveDestination => currentOrder.MoveDestination;
-    public IAttackTarget CurrentAttackTarget => currentOrder.AttackTarget;
+    public UnitOrder CurrentOrder => currentOrder;
     public int VoicePriority => voicePriority;
     public IReadOnlyList<AudioClip> OnSelectedVoiceLines => onSelectedVoiceLines;
     public IReadOnlyList<AudioClip> OnMoveOrderVoiceLines => onMoveOrderVoiceLines;
@@ -83,6 +82,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
         base.Initialize(world, prefab);
         this.owningPlayer = owningPlayer;
     }
+
     public void InitializeFromPrePlacedInfo(PrePlacedInfo info) {
         Initialize(info.World, info.Prefab as Unit, info.Player);
     }
@@ -118,33 +118,33 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     public Player OwningPlayer => owningPlayer;
 
     public void SetOrder(UnitOrder newOrder) {
+        CancelOrder();
         currentOrder = newOrder;
         World.RepathSystem.EnqueueUnitForRepath(this);
         World.MovingUnitsSet.Add(this);
     }
 
     public void CancelOrder() {
-        weapon.CancelAttackAnimation();
-        currentOrder.Clear();
+        currentOrder = null;
         World.MovingUnitsSet.Remove(this);
         movement.ClearPath();
         movement.shouldMoveAlongPath = true;
     }
-    
+
     private void Update() {
-        // If we have an attack target and it's in range -> attack it, otherwise move towards it 
-        if (weapon.IsInAttackRange(currentOrder.AttackTarget)) {
-            weapon.AttackNow(currentOrder.AttackTarget);
-            movement.shouldMoveAlongPath = false;
+        if (weapon) {
+            if (currentOrder != null && currentOrder.AttackTarget != null && currentOrder.AttackTarget.ObjectExists && weapon.IsInAttackRange(currentOrder.AttackTarget)) {
+                weapon.AttackNow(currentOrder.AttackTarget);
+                movement.shouldMoveAlongPath = false;
+            }
+            else
+                movement.shouldMoveAlongPath = true;
         }
-        else
-            movement.shouldMoveAlongPath = true;
     }
 
     public void Die() {
-
         //if (effectsAudioSource && deathScreams.Count > 0)
-            //World.AudioSystem.PlayRandomOneShotWithCooldown(World.AudioSystem.effe, deathScreams);
+        //World.AudioSystem.PlayRandomOneShotWithCooldown(World.AudioSystem.effe, deathScreams);
 
         World.Destroy(this);
     }
@@ -160,13 +160,14 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     public bool ObjectExists => this;
 
     private void CancelOrderIfTargetIsDestroyed(Object obj) {
-        if (obj == currentOrder.TargetUnit || obj == currentOrder.TargetBuilding)
+        if (currentOrder != null && (obj == currentOrder.TargetUnit || obj == currentOrder.TargetBuilding))
             CancelOrder();
     }
 
     public bool CanAttack(Building building) {
         return building && owningPlayer != building.OwningPlayer;
     }
+
     public bool CanAttack(Unit otherUnit) {
         return otherUnit && owningPlayer != otherUnit.OwningPlayer;
     }

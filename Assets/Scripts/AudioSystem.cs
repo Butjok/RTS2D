@@ -56,12 +56,14 @@ public class AudioSystem : WorldBehaviour {
         World.PlayerController.onBuildingConstructionComplete += OnBuildingConstructionComplete;
         World.PlayerController.onUnitConstructionComplete += OnUnitConstructionComplete;
         World.PlayerController.onPrimaryBuildingSelected += OnPrimaryBuildingSelected;
+        World.PlayerController.onGoldAdded += OnGoldAdded;
     }
 
     private void OnDestroy() {
         World.PlayerController.onBuildingConstructionComplete -= OnBuildingConstructionComplete;
         World.PlayerController.onUnitConstructionComplete -= OnUnitConstructionComplete;
         World.PlayerController.onPrimaryBuildingSelected -= OnPrimaryBuildingSelected;
+        World.PlayerController.onGoldAdded -= OnGoldAdded;
     }
 
     private void OnBuildingConstructionComplete(Building factory, Building buildingPrefab) {
@@ -72,6 +74,9 @@ public class AudioSystem : WorldBehaviour {
     }
     private void OnPrimaryBuildingSelected(Building primaryBuilding) {
          SayAnnouncerVoiceLine(announcer_primaryBuildingSelected);
+    }
+    private void OnGoldAdded(RefineryBuilding refinery, float amount) {
+        
     }
 
     private void Start() {

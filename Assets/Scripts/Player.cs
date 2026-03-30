@@ -13,7 +13,7 @@ public class Player : WorldBehaviour {
     [SerializeField] private int id = -1;
     [SerializeField] private PlayerController playerController;
     [SerializeField] private Color color;
-    [SerializeField] private int credits;
+    [SerializeField] private float gold;
     [SerializeField] private Kind kind = Kind.Player;
     [SerializeField] private readonly Dictionary<Building, int> buildingsOfTypeCount = new();
 
@@ -54,5 +54,11 @@ public class Player : WorldBehaviour {
 
     public int GetBuildingsCountOf(Building building) {
         return buildingsOfTypeCount.TryGetValue(building, out var count) ? count : 0;
+    }
+
+    public void AddGold(RefineryBuilding refinery,float amount) {
+        gold += amount;
+        if (playerController)
+            playerController.NotifyGoldAdded(refinery, amount);
     }
 }
