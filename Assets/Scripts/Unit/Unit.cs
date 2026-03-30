@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
 public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBuildable, ICanBePrePlaced {
@@ -43,7 +42,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
 
     public UnitMovement Movement => movement;
     public float RadiusInFormation => radiusInFormation;
-    public UnitOrder CurrentOrder => currentOrder;
+    public ref UnitOrder CurrentOrder => ref currentOrder;
     public int VoicePriority => voicePriority;
     public IReadOnlyList<AudioClip> OnSelectedVoiceLines => onSelectedVoiceLines;
     public IReadOnlyList<AudioClip> OnMoveOrderVoiceLines => onMoveOrderVoiceLines;
@@ -126,7 +125,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     }
 
     public void CancelOrder() {
-        currentOrder = null;
+        currentOrder = new();
         World.MovingUnitsSet.Remove(this);
         movement.ClearPath();
         movement.shouldMoveAlongPath = true;
@@ -134,7 +133,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
 
     private void Update() {
         if (weapon) {
-            if (currentOrder != null && currentOrder.AttackTarget != null && currentOrder.AttackTarget.ObjectExists && weapon.IsInAttackRange(currentOrder.AttackTarget)) {
+            if ((bool)currentOrder && currentOrder.AttackTarget != null && currentOrder.AttackTarget.ObjectExists && weapon.IsInAttackRange(currentOrder.AttackTarget)) {
                 weapon.AttackNow(currentOrder.AttackTarget);
                 movement.shouldMoveAlongPath = false;
             }
@@ -161,7 +160,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     public bool ObjectExists => this;
 
     private void CancelOrderIfTargetIsDestroyed(Object obj) {
-        if (currentOrder != null && (obj == currentOrder.TargetUnit || obj == currentOrder.TargetBuilding))
+        if (currentOrder && (obj == currentOrder.TargetUnit || obj == currentOrder.TargetBuilding))
             CancelOrder();
     }
 

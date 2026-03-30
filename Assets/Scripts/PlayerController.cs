@@ -228,7 +228,7 @@ public class PlayerController : WorldBehaviour {
                         else if (targetBuilding)
                             unit.SetOrder(UnitOrder.Attack(this,targetBuilding, formationPositions[unit]));
                         else if (World.Grid[targetCell].HasGold && unit.GetComponent<HarvesterLogic>())
-                            unit.SetOrder(UnitOrder.Harvest(this,targetCell, formationPositions[unit]));
+                            unit.SetOrder(UnitOrder.Harvest(this, formationPositions[unit]));
                         else
                             unit.SetOrder(UnitOrder.Move(this,formationPositions[unit]));
                     }

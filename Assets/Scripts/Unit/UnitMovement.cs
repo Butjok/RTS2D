@@ -57,7 +57,7 @@ public class UnitMovement : MonoBehaviour {
     public Vector2Int? ReservedCell { get; private set; }
 
     public bool CanCrush(Unit otherUnit) {
-        return otherUnit != null && otherUnit != unit && otherUnit.OwningPlayer != unit.OwningPlayer &&
+        return otherUnit && otherUnit != unit && otherUnit.OwningPlayer != unit.OwningPlayer &&
                unit.UnitKind == Unit.Kind.Vehicle && otherUnit.UnitKind == Unit.Kind.Infantry;
     }
 
@@ -167,6 +167,10 @@ public class UnitMovement : MonoBehaviour {
     }
 
     private void Update() {
+        
+        Debug.Assert(!unit.CurrentOrder || (unit.CurrentOrder.OrderKind is UnitOrder.Kind.Harvest or UnitOrder.Kind.Unload || MovePath.Count >= 2),
+            $"Unit {unit.name} has an order but its move path has less than 2 points. This should not happen because we should clear the order if we can't find a path to the destination, and if we have a path to the destination we should have at least 2 points in the path (the current position and the destination).");
+        
         pathRenderer.enabled = unit.IsSelected && MovePath.Count >= 2;
         if (pathRenderer.enabled) {
             movePathSegments.Clear();

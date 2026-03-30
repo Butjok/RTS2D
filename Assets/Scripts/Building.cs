@@ -28,7 +28,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
         }
 
         public float BuildTime => ((IBuildable)prefab).BuildTime;
-        
+
         public float Progress => Mathf.Clamp01(timeElapsed / BuildTime);
 
         public BuildingQueueItem(IBuildable buildablePrefab) {
@@ -40,7 +40,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     private static readonly int shader_baseColor = Shader.PropertyToID("_Color");
 
     [SerializeField] private Player owningPlayer;
-    [SerializeField] private MeshRenderer meshRenderer;
+    [SerializeField] private List<Renderer> renderers = new();
     [SerializeField] private List<Unit> buildableUnitPrefabs = new();
     [SerializeField] private List<Material> sharedGhostMaterials = new();
 
@@ -68,6 +68,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
         base.Initialize(world, prefab);
         OwningPlayer = owningPlayer;
     }
+
     public void InitializeFromPrePlacedInfo(PrePlacedInfo info) {
         Initialize(info.World, info.Prefab as Building, info.Player);
     }
@@ -81,11 +82,10 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
             playerColor = value;
             materialPropertyBlock ??= new MaterialPropertyBlock();
             materialPropertyBlock.SetColor(shader_playerColor, value);
-            meshRenderer.SetPropertyBlock(materialPropertyBlock);
+            foreach (var renderer in renderers)
+                renderer.SetPropertyBlock(materialPropertyBlock);
         }
     }
-
-    public Vector3 PlacementExtents => meshRenderer.bounds.extents;
 
     public bool IsValidGhostPlacement {
         set {
@@ -120,7 +120,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
         }
     }
 
-    public Bounds SelectionBounds => meshRenderer.bounds;
+    public Bounds SelectionBounds => renderers[0].bounds;
 
     public bool IsSelected { get; set; } = false;
     public bool CanEverBeSelected => canEverBeSelected;
@@ -137,29 +137,30 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
         IsGhost = true;
         if (boxCollider)
             boxCollider.enabled = false;
-        meshRenderer.SetSharedMaterials(sharedGhostMaterials);
+        foreach (var renderer in renderers)
+            renderer.SetSharedMaterials(sharedGhostMaterials);
         canEverBeSelected = false;
     }
 
     private IEnumerator ConstructionAnimation() {
-        var startScale = meshRenderer.transform.localScale;
-        var startLocalPosition = meshRenderer.transform.localPosition;
+        var startScale = renderers[0].transform.localScale;
+        var startLocalPosition = renderers[0].transform.localPosition;
         var elapsed = 0f;
         var duration = 1f;
         while (elapsed < duration) {
             var t = elapsed / duration;
             var scale = startScale;
             scale.y = t;
-            meshRenderer.transform.localScale = scale;
+            renderers[0].transform.localScale = scale;
             var newLocalPosition = startLocalPosition;
             newLocalPosition.Scale(new Vector3(1, t, 1));
-            meshRenderer.transform.localPosition = newLocalPosition;
+            renderers[0].transform.localPosition = newLocalPosition;
             elapsed += Time.deltaTime;
             yield return null;
         }
 
-        meshRenderer.transform.localScale = startScale;
-        meshRenderer.transform.localPosition = startLocalPosition;
+        renderers[0].transform.localScale = startScale;
+        renderers[0].transform.localPosition = startLocalPosition;
         isFullyBuilt = true;
     }
 
@@ -167,7 +168,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
         World.Destroy(this);
     }
 
-    public Vector3 PositionToBeAttackedAt => meshRenderer.bounds.center;
+    public Vector3 PositionToBeAttackedAt => renderers[0].bounds.center;
 
     public void ReceiveAttackFrom(Unit attacker) {
         lastDamageTime = Time.time;
@@ -204,16 +205,16 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
             item.TimeElapsed += Time.deltaTime;
             if (item.TimeElapsed >= item.BuildTime) {
                 buildingQueue.Dequeue();
-                if (owningPlayer.PlayerController) 
+                if (owningPlayer.PlayerController)
                     owningPlayer.PlayerController.NotifyConstructionComplete(this, item.Prefab);
             }
         }
     }
 
     private void OnDestroy() {
-        if (owningPlayer.PlayerController) 
+        if (owningPlayer && owningPlayer.PlayerController)
             owningPlayer.PlayerController.RemovePrimaryBuilding(this);
     }
-    
+
     public float? LastDamageTime => lastDamageTime;
 }

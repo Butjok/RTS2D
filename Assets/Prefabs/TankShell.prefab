@@ -50,7 +50,7 @@ MonoBehaviour:
   prefab: {fileID: 0}
   world: {fileID: 0}
   owningUnit: {fileID: 0}
-  renderer: {fileID: 8867386114747195964}
+  projectileRenderer: {fileID: 8867386114747195964}
   target: {x: 0, y: 0, z: 0}
   speed: 15
   explosionRadius: 1

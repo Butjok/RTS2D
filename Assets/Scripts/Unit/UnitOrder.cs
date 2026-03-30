@@ -3,9 +3,10 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 
 [Serializable]
-public class UnitOrder {
+public struct UnitOrder {
 
     public enum Kind {
+        None,
         Move,
         Attack,
         Harvest,
@@ -27,11 +28,16 @@ public class UnitOrder {
     public float Age => Time.time - creationTime;
     public Kind OrderKind => kind;
     
+    public static implicit operator bool(UnitOrder order) {
+        return order.OrderKind != Kind.None;
+    }
+
     public static UnitOrder Move(Object source,Vector2 destination) {
         return new UnitOrder {
             kind = Kind.Move,
             source = source,
-            moveDestination = destination
+            moveDestination = destination,
+            creationTime =  Time.time
         };
     }
 
@@ -40,7 +46,8 @@ public class UnitOrder {
             kind = Kind.Attack,
             source = source,
             moveDestination = destination,
-            targetUnit = targetUnit
+            targetUnit = targetUnit,
+            creationTime =  Time.time
         };
     }
 
@@ -49,15 +56,17 @@ public class UnitOrder {
             kind = Kind.Attack,
             source = source,
             moveDestination = destination,
-            targetBuilding = targetBuilding
+            targetBuilding = targetBuilding,
+            creationTime =  Time.time
         };
     }
 
-    public static UnitOrder Harvest(Object source, Vector2Int harvestingCell, Vector2 destination) {
+    public static UnitOrder Harvest(Object source, Vector2 destination) {
         return new UnitOrder {
             kind = Kind.Harvest,
             source = source,
-            moveDestination = destination
+            moveDestination = destination,
+            creationTime =  Time.time
         };
     }
 
@@ -65,8 +74,9 @@ public class UnitOrder {
         return new UnitOrder {
             kind = Kind.Unload,
             source = source,
-            moveDestination = refinery.transform.position.ToVector2() + refinery.GoldDepositPosition,
-            targetBuilding = refinery
+            moveDestination = refinery.GoldDepositPosition,
+            targetBuilding = refinery,
+            creationTime =  Time.time
         };
     }
 }
