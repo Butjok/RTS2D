@@ -154,6 +154,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   owningUnit: {fileID: 8676087694340533686}
+  attackRange: 3
+  attackCooldown: 1.5
   lineRenderer: {fileID: 4867522035901801254}
   burstCount: 3
   shotInterval: 0.05
@@ -319,11 +321,8 @@ MonoBehaviour:
   radiusInFormation: 0.5
   renderers:
   - {fileID: 3831960648216866428}
-  pathRenderer: {fileID: 3291945252028627405}
   selectionCircleRenderer: {fileID: 635482942073229039}
-  attackRange: 3
-  attackCooldown: 1.5
-  attackAnimation: {fileID: 788160061453090522}
+  weapon: {fileID: 788160061453090522}
   voicePriority: 0
   onSelectedVoiceLines:
   - {fileID: 8300000, guid: 8651601e417d4413aaff24871c41b811, type: 3}
@@ -371,6 +370,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   unit: {fileID: 8676087694340533686}
   cell: {x: 0, y: 0}
+  pathRenderer: {fileID: 3291945252028627405}
   shouldMoveAlongPath: 1
   moveSpeed: 2
   hasRotationSpeed: 0

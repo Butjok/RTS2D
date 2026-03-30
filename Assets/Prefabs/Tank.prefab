@@ -175,11 +175,8 @@ MonoBehaviour:
   - {fileID: 1483168665506808279}
   - {fileID: 9107090357287418331}
   - {fileID: 5998453436804908398}
-  pathRenderer: {fileID: 3291945252028627405}
   selectionCircleRenderer: {fileID: 635482942073229039}
-  attackRange: 5
-  attackCooldown: 2
-  attackAnimation: {fileID: 7294531369379762129}
+  weapon: {fileID: 7294531369379762129}
   voicePriority: 1
   onSelectedVoiceLines:
   - {fileID: 8300000, guid: 5bba6fbcfcd974e36963598b7b0d4b22, type: 3}
@@ -197,11 +194,6 @@ MonoBehaviour:
   - {fileID: 8300000, guid: d1fc5ad4d3c35402eb29f5dd3decf751, type: 3}
   - {fileID: 8300000, guid: cd3f32c7c5cb541a98a1ea59362a80b9, type: 3}
   deathScreams: []
-  turret:
-    turretTransform: {fileID: 95177331063239617}
-    barrelMuzzleTransform: {fileID: 2817902343342891406}
-  turretRelativeYaw: 0
-  turretRotationSpeed: 90
   currentOrder:
     targetUnit: {fileID: 0}
     targetBuilding: {fileID: 0}
@@ -221,6 +213,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   unit: {fileID: 8676087694340533686}
   cell: {x: 0, y: 0}
+  pathRenderer: {fileID: 3291945252028627405}
   shouldMoveAlongPath: 1
   moveSpeed: 3
   hasRotationSpeed: 1
@@ -940,7 +933,7 @@ GameObject:
   - component: {fileID: 2366352014025285082}
   - component: {fileID: 7294531369379762129}
   m_Layer: 0
-  m_Name: CannonFireAttackAnimation
+  m_Name: CannonWeapon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1071,10 +1064,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   owningUnit: {fileID: 8676087694340533686}
+  attackRange: 3
+  attackCooldown: 2
   projectilePrefab: {fileID: 2220271368694860319, guid: 025cf1e95b58a624ebba0b4cff3208ac, type: 3}
   burstCount: 1
   shotInterval: 0
   shotSound: {fileID: 8300000, guid: 0a5dfaa3ddd7d471693a22f70de33eb9, type: 3}
   audioSource: {fileID: 2366352014025285082}
-  muzzles:
-  - {fileID: 2817902343342891406}
+  turret:
+    turretTransform: {fileID: 95177331063239617}
+    muzzleTransforms:
+    - {fileID: 2817902343342891406}
+    turretRotationSpeed: 90

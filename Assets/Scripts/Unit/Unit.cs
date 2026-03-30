@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
 public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBuildable, ICanBePrePlaced {
@@ -9,15 +10,6 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     public enum Kind {
         Infantry,
         Vehicle
-    }
-
-    [Serializable]
-    public struct UnitTurret {
-        [SerializeField] private Transform turretTransform;
-        [SerializeField] private Transform barrelMuzzleTransform;
-
-        public Transform TurretTransform => turretTransform;
-        public Transform BarrelMuzzleTransform => barrelMuzzleTransform;
     }
 
     private static readonly int shader_playerColor = Shader.PropertyToID("_PlayerColor");
@@ -31,23 +23,15 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     [SerializeField] private float radiusInFormation = .5f;
 
     [SerializeField] private List<Renderer> renderers = new();
-    [SerializeField] private LineRenderer pathRenderer;
     [SerializeField] private Renderer selectionCircleRenderer;
-
-    [SerializeField] private float attackRange = 3;
-    [SerializeField] private float attackCooldown = .5f;
-    [SerializeField] private float? lastAttackTime;
-    [SerializeField] private UnitAttackAnimation attackAnimation;
+    
+    [FormerlySerializedAs("attackAnimation")] [SerializeField] private UnitWeapon weapon;
 
     [SerializeField] private int voicePriority;
     [SerializeField] private List<AudioClip> onSelectedVoiceLines = new();
     [SerializeField] private List<AudioClip> onMoveOrderVoiceLines = new();
     [SerializeField] private List<AudioClip> onAttackOrderVoiceLines = new();
     [SerializeField] private List<AudioClip> deathScreams = new();
-
-    [SerializeField] private UnitTurret turret;
-    [SerializeField] private float turretRelativeYaw = 0;
-    [SerializeField] private float turretRotationSpeed = 90;
 
     [SerializeField] private UnitOrder currentOrder = new();
     [SerializeField] private Kind kind = Kind.Infantry;
@@ -57,13 +41,10 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     private MaterialPropertyBlock materialPropertyBlock;
     private Color? playerColor;
 
-    private readonly List<(Vector2 start, Vector2 end)> movePathSegments = new();
-
-    private IEnumerator attackAnimationCoroutine;
-
     public UnitMovement Movement => movement;
     public float RadiusInFormation => radiusInFormation;
     public Vector2? MoveDestination => currentOrder.MoveDestination;
+    public IAttackTarget CurrentAttackTarget => currentOrder.AttackTarget;
     public int VoicePriority => voicePriority;
     public IReadOnlyList<AudioClip> OnSelectedVoiceLines => onSelectedVoiceLines;
     public IReadOnlyList<AudioClip> OnMoveOrderVoiceLines => onMoveOrderVoiceLines;
@@ -142,57 +123,17 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     }
 
     public void CancelOrder() {
-        CancelAttackAnimation();
+        weapon.CancelAttackAnimation();
         currentOrder.Clear();
         World.MovingUnitsSet.Remove(this);
         movement.ClearPath();
         movement.shouldMoveAlongPath = true;
     }
     
-    public bool AttackNow(IAttackTarget target) {
-
-        if (Time.time - lastAttackTime < attackCooldown)
-            return false;
-        lastAttackTime = Time.time;
-
-        if (attackAnimationCoroutine != null)
-            StopCoroutine(attackAnimationCoroutine);
-
-        attackAnimationCoroutine = AttackAnimation(target);
-        StartCoroutine(attackAnimationCoroutine);
-
-        return true;
-    }
-
-    private IEnumerator AttackAnimation(IAttackTarget target) {
-        lastAttackTime = Time.time;
-        yield return attackAnimation.AttackAnimation(target);
-        attackAnimationCoroutine = null;
-    }
-
     private void Update() {
-
-        pathRenderer.enabled = IsSelected && movement.MovePath.Count >= 2;
-        if (pathRenderer.enabled) {
-
-            movePathSegments.Clear();
-            for (var segmentIndex = 0; segmentIndex < movement.MovePath.Count - 1; segmentIndex++) {
-                var start = movement.MovePath[segmentIndex];
-                var end = movement.MovePath[segmentIndex + 1];
-                movePathSegments.Add((start, end));
-            }
-
-            pathRenderer.positionCount = movePathSegments.Count + 1;
-            if (movePathSegments.Count > 0) {
-                pathRenderer.SetPosition(0, movePathSegments[0].start.ToVector3());
-                for (var i = 0; i < movePathSegments.Count; i++)
-                    pathRenderer.SetPosition(i + 1, movePathSegments[i].end.ToVector3());
-            }
-        }
-
         // If we have an attack target and it's in range -> attack it, otherwise move towards it 
-        if (currentOrder.AttackTarget is { ObjectExists: true } && DistanceTo(currentOrder.AttackTarget) <= attackRange) {
-            AttackNow(currentOrder.AttackTarget);
+        if (weapon.CanEverAttack(currentOrder.AttackTarget)) {
+            weapon.AttackNow(currentOrder.AttackTarget);
             movement.shouldMoveAlongPath = false;
         }
         else
@@ -204,16 +145,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
         //if (effectsAudioSource && deathScreams.Count > 0)
             //World.AudioSystem.PlayRandomOneShotWithCooldown(World.AudioSystem.effe, deathScreams);
 
-        CancelAttackAnimation();
         World.Destroy(this);
-    }
-
-    private void CancelAttackAnimation() {
-        if (attackAnimationCoroutine != null) {
-            StopCoroutine(attackAnimationCoroutine);
-            attackAnimation.OnCancelled();
-            attackAnimationCoroutine = null;
-        }
     }
 
     public Vector3 PositionToBeAttackedAt => transform.position;
@@ -224,21 +156,6 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     }
 
     public bool ObjectExists => this;
-
-    public float DistanceTo(Building targetBuilding) {
-        var closestPointOnBuilding = targetBuilding.BoxCollider.ClosestPoint(transform.position);
-        return Vector3.Distance(transform.position, closestPointOnBuilding);
-    }
-    public float DistanceTo(Unit targetUnit) {
-        return Vector3.Distance(transform.position, targetUnit.transform.position);
-    }
-    public float DistanceTo(IAttackTarget attackTarget) {
-        return attackTarget switch {
-            Building building => DistanceTo(building),
-            Unit unit => DistanceTo(unit),
-            _ => throw new ArgumentException("Unknown attack target type")
-        };
-    }
 
     private void CancelOrderIfTargetIsDestroyed(Object obj) {
         if (obj == currentOrder.TargetUnit || obj == currentOrder.TargetBuilding)

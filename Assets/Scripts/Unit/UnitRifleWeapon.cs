@@ -3,7 +3,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(LineRenderer))]
 [RequireComponent(typeof(AudioSource))]
-public class UnitRifleFireAttackAnimation : UnitAttackAnimation {
+public class UnitRifleWeapon : UnitWeapon {
 
     [SerializeField] private LineRenderer lineRenderer;
     [SerializeField] private int burstCount = 3;
@@ -23,7 +23,7 @@ public class UnitRifleFireAttackAnimation : UnitAttackAnimation {
         lineRenderer.enabled = false;
     }
 
-    public override IEnumerator AttackAnimation(IAttackTarget target) {
+    protected override IEnumerator AttackAnimation_Internal(IAttackTarget target) {
         if (target.ObjectExists) {
 
             target.ReceiveAttackFrom(OwningUnit);
@@ -55,7 +55,7 @@ public class UnitRifleFireAttackAnimation : UnitAttackAnimation {
         lineRenderer.enabled = false;
     }
 
-    public override void OnCancelled() {
+    protected override void OnCancelled() {
         StopAllCoroutines();
         lineRenderer.enabled = false;
     }

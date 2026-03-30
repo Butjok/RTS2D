@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 //using Drawing;
@@ -7,6 +8,7 @@ public class UnitMovement : MonoBehaviour {
 
     [SerializeField] private Unit unit;
     [SerializeField] private Vector2Int cell;
+    [SerializeField] private LineRenderer pathRenderer;
 
     public bool shouldMoveAlongPath = true;
 
@@ -17,8 +19,10 @@ public class UnitMovement : MonoBehaviour {
     [SerializeField] private float stuckTimeThresholdForRepath = 1;
     [SerializeField] private float offThePathTimeThresholdForRepath = 1;
     [SerializeField] private float requestOtherUnitToStepAsideTimeThreshold = .5f;
-    
+
     [SerializeField] private AudioClip crushingAudioClip;
+    
+    private readonly List<(Vector2 start, Vector2 end)> movePathSegments = new();
 
     private IEnumerator movementAnimationCoroutine;
 
@@ -126,12 +130,8 @@ public class UnitMovement : MonoBehaviour {
         if (enemyUnit) {
             // if we get here it means there is an enemy unit on this cell and we can crush it, so we destroy the enemy unit
 
-            // if the enemy units was already moving to some other cell and reserved that cell, we free that cell from reservation so that other units can move there
-            if (enemyUnit.Movement.ReservedCell is { } actualEnemyUnitReservedCell)
-                unit.World.Grid[actualEnemyUnitReservedCell].reservedBy = null;
-            
             enemyUnit.Die();
-            
+
             unit.World.AudioSystem.PlayOneShotWithCooldown(unit.EffectsAudioSource, crushingAudioClip);
         }
 
@@ -157,7 +157,35 @@ public class UnitMovement : MonoBehaviour {
         unit.World.Grid[cell].occupiedBy = unit;
     }
 
+    private void OnDestroy() {
+        if (unit && unit.World && unit.World.Grid) {
+            unit.World.Grid[cell].occupiedBy = null;
+            if (ReservedCell is {} actualReservedCell) {
+                Debug.Assert(unit.World.Grid[actualReservedCell].reservedBy == unit);
+                unit.World.Grid[actualReservedCell].reservedBy = null;
+            }
+        }
+    }
+
     private void Update() {
+        
+        pathRenderer.enabled = unit.IsSelected && MovePath.Count >= 2;
+        if (pathRenderer.enabled) {
+
+            movePathSegments.Clear();
+            for (var segmentIndex = 0; segmentIndex < MovePath.Count - 1; segmentIndex++) {
+                var start = MovePath[segmentIndex];
+                var end = MovePath[segmentIndex + 1];
+                movePathSegments.Add((start, end));
+            }
+
+            pathRenderer.positionCount = movePathSegments.Count + 1;
+            if (movePathSegments.Count > 0) {
+                pathRenderer.SetPosition(0, movePathSegments[0].start.ToVector3());
+                for (var i = 0; i < movePathSegments.Count; i++)
+                    pathRenderer.SetPosition(i + 1, movePathSegments[i].end.ToVector3());
+            }
+        }
 
         if (unit.IsSelected && unit.OwningPlayer.PlayerController && unit.OwningPlayer.PlayerController.showMovePathCells) {
             for (var segmentIndex = 0; segmentIndex < smoothPathCells.Count - 1; segmentIndex++) {
