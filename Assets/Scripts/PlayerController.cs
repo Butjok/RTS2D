@@ -60,7 +60,7 @@ public class PlayerController : WorldBehaviour {
     public event Action<Building, Building> onBuildingConstructionComplete;
     public event Action<Building, Unit> onUnitConstructionComplete;
     public event Action<Building> onPrimaryBuildingSelected;
-    public event Action<RefineryBuilding,float> onGoldAdded;
+    public event Action<RefineryBuilding, float> onGoldAdded;
 
     private readonly Dictionary<Building, Building> primaryBuildings = new();
 
@@ -208,7 +208,6 @@ public class PlayerController : WorldBehaviour {
                     selectedUnits.AddRange(selectedEntities.OfType<Unit>());
 
                     var targetPosition = hitInfo.point.ToVector2();
-                    var targetCell = World.Grid.WorldPositionToCell(targetPosition);
                     var targetBuilding = hitInfo.collider.GetComponent<Building>();
                     var targetUnit = hitInfo.collider.GetComponent<Unit>();
 
@@ -223,14 +222,17 @@ public class PlayerController : WorldBehaviour {
                         targetBuilding = null;
 
                     foreach (var unit in selectedUnits) {
-                        if (targetUnit)
-                            unit.SetOrder(UnitOrder.Attack(this,targetUnit, formationPositions[unit]));
-                        else if (targetBuilding)
-                            unit.SetOrder(UnitOrder.Attack(this,targetBuilding, formationPositions[unit]));
-                        else if (World.Grid[targetCell].HasGold && unit.GetComponent<HarvesterLogic>())
-                            unit.SetOrder(UnitOrder.Harvest(this, formationPositions[unit]));
+                        var destination = formationPositions[unit];
+                        var destinationCell = World.Grid.WorldPositionToCell(destination);
+
+                        if (targetUnit && unit.CanAttack(targetUnit))
+                            unit.SetOrder(UnitOrder.Attack(this, targetUnit, destination));
+                        else if (targetBuilding && unit.CanAttack(targetBuilding))
+                            unit.SetOrder(UnitOrder.Attack(this, targetBuilding, destination));
+                        else if (World.Grid[destinationCell].HasGold && unit.GetComponent<HarvesterLogic>())
+                            unit.SetOrder(UnitOrder.Harvest(this, destination));
                         else
-                            unit.SetOrder(UnitOrder.Move(this,formationPositions[unit]));
+                            unit.SetOrder(UnitOrder.Move(this, destination));
                     }
 
                     if (selectedUnits.Count > 0) {
@@ -344,7 +346,7 @@ public class PlayerController : WorldBehaviour {
         if (unit)
             onUnitConstructionComplete?.Invoke(factory, unit);
     }
-    
+
     public void NotifyGoldAdded(RefineryBuilding refinery, float amountAdded) {
         onGoldAdded?.Invoke(refinery, amountAdded);
     }
