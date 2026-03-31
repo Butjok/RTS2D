@@ -76,6 +76,8 @@ public class PlayerController : WorldBehaviour {
     [SerializeField] private AudioClip announcer_unitLost;
     [SerializeField] private AudioClip announcer_unitReady;
     [SerializeField] private AudioClip announcer_primaryBuildingSelected;
+    [SerializeField] private AudioClip announcer_onHold;
+    [SerializeField] private AudioClip announcer_cancelled;
 
     private readonly HashSet<Building.ConstructionOption> constructionOptions = new();
     private readonly HashSet<Building.ConstructionOption> oldConstructionOptions = new();
@@ -409,5 +411,15 @@ public class PlayerController : WorldBehaviour {
 
     public void NotifyBattleControlTerminated() {
         World.AudioSystem.SayAnnouncerVoiceLine(announcer_battleControlTerminated);
+    }
+
+    public void NotifyPutOnHold(Building.ConstructionQueueItem item) {
+        World.AudioSystem.SayAnnouncerVoiceLine(announcer_onHold);
+    }
+    public void NotifyCancelled(Building.ConstructionQueueItem item) {
+        World.AudioSystem.SayAnnouncerVoiceLine(announcer_cancelled);
+    }
+    public void NotifyResumeBuilding(Building.ConstructionQueueItem constructionQueueItem) {
+        World.AudioSystem.SayAnnouncerVoiceLine(announcer_building);
     }
 }

@@ -58,8 +58,8 @@ MonoBehaviour:
   enableBuildingPlacement: 1
   spawnedUnitsCount: 0
   showMovePathCells: 0
-  announcer_battleControlActivated: {fileID: 8300000, guid: 189a643ed07c744cca97d9da26a47fdf, type: 3}
-  announcer_battleControlTerminated: {fileID: 8300000, guid: 2ea7276eb0fad4c8aaedbd8148e26dc7, type: 3}
+  announcer_battleControlActivated: {fileID: 8300000, guid: e01aaa2c362703944a8d8c9f2d02cfe5, type: 3}
+  announcer_battleControlTerminated: {fileID: 8300000, guid: 724a32ee472816a45980b00ee85717fa, type: 3}
   announcer_building: {fileID: 8300000, guid: 196db0199897240788bf8b1e4ae0e1b4, type: 3}
   announcer_constructionComplete: {fileID: 8300000, guid: 0d75cc3d570104c2aadbdc1f367b43eb, type: 3}
   announcer_incomingTransmission: {fileID: 8300000, guid: 5da56963e87944e5496419c73c0cc90e, type: 3}
@@ -69,7 +69,9 @@ MonoBehaviour:
   announcer_newObjective: {fileID: 8300000, guid: 05c4c2877b9c74522bd787e204466d4d, type: 3}
   announcer_unitLost: {fileID: 8300000, guid: 1c2779a4151f1446cb84cd63e8e22eeb, type: 3}
   announcer_unitReady: {fileID: 8300000, guid: 452687cf54cef4af6ac2c15140cc0daa, type: 3}
-  announcer_primaryBuildingSelected: {fileID: 0}
+  announcer_primaryBuildingSelected: {fileID: 8300000, guid: cfbdf77594ef42e4b81d06cb0e90c13e, type: 3}
+  announcer_onHold: {fileID: 8300000, guid: b4320cfc11820e048bf982b5ad44a5cd, type: 3}
+  announcer_cancelled: {fileID: 8300000, guid: 4e4c9638c52613142a05ad239561da3f, type: 3}
 --- !u!20 &1514448831429975428
 Camera:
   m_ObjectHideFlags: 0

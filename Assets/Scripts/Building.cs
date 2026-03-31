@@ -60,15 +60,61 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
 
     [Serializable]
     public class ConstructionQueueItem {
+
+        public enum Status {
+            QueuedOrBuilding,
+            OnHold,
+            Cancelled,
+            ConstructionComplete
+        }
+
         [SerializeField] private ConstructionOption constructionOption;
+        [SerializeField] private Building building;
+
         public float timeElapsed;
-        public bool wasReportedAsCompleted;
+        private Status buildStatus = Status.QueuedOrBuilding;
+        public bool isValid = true;
 
         public ConstructionOption ConstructionOption => constructionOption;
         public float Progress => Mathf.Clamp01(timeElapsed / constructionOption.BuildTime);
 
-        public ConstructionQueueItem(ConstructionOption constructionOption) {
+        public ConstructionQueueItem(Building building, ConstructionOption constructionOption) {
+            this.building = building;
             this.constructionOption = constructionOption;
+        }
+
+        public Status BuildStatus {
+            get => buildStatus;
+            set {
+                buildStatus = value;
+                switch (buildStatus) {
+
+                    case Status.QueuedOrBuilding: {
+                        Debug.Assert(building.ConstructionQueue.TryPeek(out var item) && item == this, "Only the currently active construction queue item can be resumed");
+                        if (building.OwningPlayer.PlayerController)
+                            building.OwningPlayer.PlayerController.NotifyResumeBuilding(this);
+                        buildStatus = Status.QueuedOrBuilding;
+                        break;
+                    }
+
+                    case Status.OnHold: {
+                        Debug.Assert(building.ConstructionQueue.TryPeek(out var item) && item == this, "Only the currently active construction queue item can be put on hold");
+                        if (building.OwningPlayer.PlayerController)
+                            building.OwningPlayer.PlayerController.NotifyPutOnHold(this);
+                        buildStatus = Status.OnHold;
+                        break;
+                    }
+
+                    case Status.Cancelled: {
+                        Debug.Assert(building.ConstructionQueue.Contains(this), "Only construction queue items that are on hold can be cancelled");
+                        building.constructionQueue.Dequeue();
+                        if (building.OwningPlayer.PlayerController)
+                            building.OwningPlayer.PlayerController.NotifyCancelled(this);
+                        buildStatus = Status.Cancelled;
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -84,7 +130,6 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     [SerializeField] private bool isFullyBuilt = true;
     [SerializeField] private bool canEverBeSelected = true;
     [SerializeField] private List<ConstructionOption> constructionOptions = new();
-
     private readonly Queue<ConstructionQueueItem> constructionQueue = new();
 
     private float health = 1;
@@ -97,6 +142,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     private Color? playerColor;
 
     public BoxCollider BoxCollider => boxCollider;
+    public Queue<ConstructionQueueItem> ConstructionQueue => constructionQueue;
 
     public IReadOnlyList<ConstructionOption> ConstructionOptions {
         get {
@@ -229,7 +275,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
 
     public ConstructionQueueItem StartBuilding(ConstructionOption constructionOption) {
         Debug.Assert(constructionOption.MeetsPrerequisites(owningPlayer));
-        var itemInConstruction = new ConstructionQueueItem(constructionOption);
+        var itemInConstruction = new ConstructionQueueItem(this, constructionOption);
         constructionQueue.Enqueue(itemInConstruction);
         if (owningPlayer.PlayerController)
             owningPlayer.PlayerController.NotifyStartBuilding(this, constructionOption);
@@ -237,22 +283,21 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     }
 
     private void Update() {
-        if (constructionQueue.TryPeek(out var constructionQueueItem)) {
-            
+        if (constructionQueue.TryPeek(out var constructionQueueItem) && constructionQueueItem.BuildStatus == ConstructionQueueItem.Status.QueuedOrBuilding) {
+
             constructionQueueItem.timeElapsed += Time.deltaTime;
-            
-            if (constructionQueueItem.timeElapsed >= constructionQueueItem.ConstructionOption.BuildTime && !constructionQueueItem.wasReportedAsCompleted) {
-                constructionQueueItem.wasReportedAsCompleted = true;
-                
+
+            if (constructionQueueItem.timeElapsed >= constructionQueueItem.ConstructionOption.BuildTime && constructionQueueItem.BuildStatus != ConstructionQueueItem.Status.ConstructionComplete) {
+                constructionQueueItem.BuildStatus = ConstructionQueueItem.Status.ConstructionComplete;
+                    
                 if (owningPlayer.PlayerController)
                     owningPlayer.PlayerController.NotifyConstructionComplete(this, constructionQueueItem.ConstructionOption.Prefab);
-                
+
                 if (constructionQueueItem.ConstructionOption.Prefab is Unit) {
                     constructionQueue.Dequeue();
+                    constructionQueueItem.isValid = false;
                 }
-                else if (constructionQueueItem.ConstructionOption.Prefab is Building) {
-                    
-                }
+                else if (constructionQueueItem.ConstructionOption.Prefab is Building) { }
             }
         }
     }
@@ -263,7 +308,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     }
 
     public float? LastDamageTime => lastDamageTime;
-    
+
     public bool CanReceiveOrderFrom(PlayerController playerController) {
         return playerController && playerController.Player == owningPlayer;
     }

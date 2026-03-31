@@ -14,9 +14,10 @@
 
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class BuildIcon : Image {
+public class BuildIcon : Image, IPointerClickHandler {
 
     private static int progressPropertyId = Shader.PropertyToID("_Progress");
 
@@ -51,8 +52,14 @@ public class BuildIcon : Image {
     }
 
     private void Update() {
-        if (constructionQueueItem != null)
-            Progress = constructionQueueItem.Progress;
+        if (constructionQueueItem != null) {
+            if (!constructionQueueItem.isValid)
+                constructionQueueItem = null;
+            else {
+                if (constructionQueueItem.BuildStatus == Building.ConstructionQueueItem.Status.QueuedOrBuilding)
+                    Progress = constructionQueueItem.Progress;
+            }
+        }
     }
 
     public float Progress {
@@ -62,12 +69,6 @@ public class BuildIcon : Image {
             if (materialInstance)
                 materialInstance.SetFloat(progressPropertyId, progress);
         }
-    }
-
-    public void StartBuilding() {
-        var primaryBuilding = owningHUD.PlayerController.Player.GetPrimaryBuilding(constructionOption.SourceBuildingType);
-        Debug.Assert(primaryBuilding);
-        constructionQueueItem = primaryBuilding.StartBuilding(constructionOption);
     }
 
     protected override void OnPopulateMesh(VertexHelper toFill) {
@@ -97,6 +98,29 @@ public class BuildIcon : Image {
                 _ => throw new System.IndexOutOfRangeException($"Unexpected vertex index {i} when populating BuildableIcon mesh")
             };
             toFill.SetUIVertex(uiVertex, i);
+        }
+    }
+
+    public void OnPointerClick(PointerEventData eventData) {
+        if (eventData.button == PointerEventData.InputButton.Left) {
+            if (constructionQueueItem == null) {
+                var primaryBuilding = owningHUD.PlayerController.Player.GetPrimaryBuilding(constructionOption.SourceBuildingType);
+                Debug.Assert(primaryBuilding);
+                constructionQueueItem = primaryBuilding.StartBuilding(constructionOption);
+            }
+            else if (constructionQueueItem.BuildStatus == Building.ConstructionQueueItem.Status.OnHold)
+                constructionQueueItem.BuildStatus = Building.ConstructionQueueItem.Status.QueuedOrBuilding;
+        }
+        else if (eventData.button == PointerEventData.InputButton.Right) {
+            if (constructionQueueItem != null) {
+                if (constructionQueueItem.BuildStatus == Building.ConstructionQueueItem.Status.QueuedOrBuilding)
+                    constructionQueueItem.BuildStatus = Building.ConstructionQueueItem.Status.OnHold;
+                else if (constructionQueueItem.BuildStatus == Building.ConstructionQueueItem.Status.OnHold) {
+                    constructionQueueItem.BuildStatus = Building.ConstructionQueueItem.Status.Cancelled;
+                    constructionQueueItem = null;
+                    Progress = 1;
+                }
+            }
         }
     }
 }

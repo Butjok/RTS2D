@@ -55,7 +55,7 @@ public class PlayerHUD : WorldBehaviour {
     [SerializeField] private GameObject victoryScreen;
     [SerializeField] private GameObject defeatScreen;
 
-    [SerializeField] private Button buildIconTemplate;
+    [SerializeField] private BuildIcon buildIconTemplate;
 
     public PlayerController PlayerController => playerController;
 
