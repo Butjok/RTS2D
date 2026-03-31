@@ -180,10 +180,10 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, ICan
     }
 
     public bool CanAttack(Building building) {
-        return building && owningPlayer != building.OwningPlayer;
+        return weapon && building && owningPlayer != building.OwningPlayer;
     }
 
     public bool CanAttack(Unit otherUnit) {
-        return otherUnit && owningPlayer != otherUnit.OwningPlayer;
+        return weapon && otherUnit && owningPlayer != otherUnit.OwningPlayer;
     }
 }

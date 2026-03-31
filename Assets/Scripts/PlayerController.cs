@@ -78,6 +78,8 @@ public class PlayerController : WorldBehaviour {
     [SerializeField] private AudioClip announcer_primaryBuildingSelected;
     [SerializeField] private AudioClip announcer_onHold;
     [SerializeField] private AudioClip announcer_cancelled;
+    [SerializeField] private AudioClip announcer_reinforcementsHaveArrived;
+    [SerializeField] private AudioClip announcer_lowerPower;
 
     private readonly HashSet<Building.ConstructionOption> constructionOptions = new();
     private readonly HashSet<Building.ConstructionOption> oldConstructionOptions = new();
@@ -260,6 +262,7 @@ public class PlayerController : WorldBehaviour {
 
                     var targetPosition = hitInfo.point.ToVector2();
                     var targetBuilding = hitInfo.collider.GetComponent<Building>();
+                    var targetRefinery = targetBuilding ? targetBuilding.GetComponent<RefineryBuilding>() : null;
                     var targetUnit = hitInfo.collider.GetComponent<Unit>();
 
                     formationPositions.Clear();
@@ -285,7 +288,6 @@ public class PlayerController : WorldBehaviour {
                         else if (targetBuilding && unit.CanAttack(targetBuilding))
                             unit.SetOrder(UnitOrder.Attack(this, targetBuilding, destination));
                         else if (unit.GetComponent<HarvesterLogic>()) {
-                            var targetRefinery = targetBuilding ? targetBuilding.GetComponent<RefineryBuilding>() : null;
                             if (World.Grid[destinationCell].HasGold)
                                 unit.SetOrder(UnitOrder.Harvest(this, destination));
                             else if (targetRefinery && targetRefinery.OwningPlayer == unit.OwningPlayer)
@@ -426,5 +428,11 @@ public class PlayerController : WorldBehaviour {
     }
     public void NotifyResumeBuilding(Building.ConstructionQueueItem constructionQueueItem) {
         World.AudioSystem.SayAnnouncerVoiceLine(announcer_building);
+    }
+    public void NotifyReinforcementsHaveArrived() {
+        World.AudioSystem.SayAnnouncerVoiceLine(announcer_reinforcementsHaveArrived);
+    }
+    public void NotifyLowerPower() {
+        World.AudioSystem.SayAnnouncerVoiceLine(announcer_lowerPower);
     }
 }
