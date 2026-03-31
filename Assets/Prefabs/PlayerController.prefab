@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 4930322580189757885}
   - component: {fileID: 3191332195515900242}
   - component: {fileID: 1514448831429975428}
-  - component: {fileID: 5824531364445203347}
   - component: {fileID: 2296282050949469115}
   m_Layer: 0
   m_Name: PlayerController
@@ -72,6 +71,8 @@ MonoBehaviour:
   announcer_primaryBuildingSelected: {fileID: 8300000, guid: cfbdf77594ef42e4b81d06cb0e90c13e, type: 3}
   announcer_onHold: {fileID: 8300000, guid: b4320cfc11820e048bf982b5ad44a5cd, type: 3}
   announcer_cancelled: {fileID: 8300000, guid: 4e4c9638c52613142a05ad239561da3f, type: 3}
+  announcer_reinforcementsHaveArrived: {fileID: 0}
+  announcer_lowerPower: {fileID: 0}
 --- !u!20 &1514448831429975428
 Camera:
   m_ObjectHideFlags: 0
@@ -123,50 +124,6 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!114 &5824531364445203347
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8418221499076449551}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_RenderShadows: 1
-  m_RequiresDepthTextureOption: 2
-  m_RequiresOpaqueTextureOption: 2
-  m_CameraType: 0
-  m_Cameras: []
-  m_RendererIndex: -1
-  m_VolumeLayerMask:
-    serializedVersion: 2
-    m_Bits: 1
-  m_VolumeTrigger: {fileID: 0}
-  m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 1
-  m_Antialiasing: 3
-  m_AntialiasingQuality: 2
-  m_StopNaN: 0
-  m_Dithering: 0
-  m_ClearDepth: 1
-  m_AllowXRRendering: 1
-  m_AllowHDROutput: 1
-  m_UseScreenCoordOverride: 0
-  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
-  m_RequiresDepthTexture: 0
-  m_RequiresColorTexture: 0
-  m_Version: 2
-  m_TaaSettings:
-    m_Quality: 3
-    m_FrameInfluence: 0.1
-    m_JitterScale: 1
-    m_MipBias: 0
-    m_VarianceClampScale: 0.9
-    m_ContrastAdaptiveSharpening: 0
 --- !u!81 &2296282050949469115
 AudioListener:
   m_ObjectHideFlags: 0
