@@ -56,10 +56,20 @@ MonoBehaviour:
   enableSelection: 1
   enableUnitOrders: 1
   enableBuildingPlacement: 1
-  availableBuildingsToPlace:
-  - {fileID: 4128571816054445560, guid: de3edd7c6e1504bc4a5e58ecf29a0874, type: 3}
   spawnedUnitsCount: 0
   showMovePathCells: 0
+  announcer_battleControlActivated: {fileID: 8300000, guid: 189a643ed07c744cca97d9da26a47fdf, type: 3}
+  announcer_battleControlTerminated: {fileID: 8300000, guid: 2ea7276eb0fad4c8aaedbd8148e26dc7, type: 3}
+  announcer_building: {fileID: 8300000, guid: 196db0199897240788bf8b1e4ae0e1b4, type: 3}
+  announcer_constructionComplete: {fileID: 8300000, guid: 0d75cc3d570104c2aadbdc1f367b43eb, type: 3}
+  announcer_incomingTransmission: {fileID: 8300000, guid: 5da56963e87944e5496419c73c0cc90e, type: 3}
+  announcer_insufficientFunds: {fileID: 8300000, guid: fa85c2f73c29b41c9aa7d2d6ce0571a8, type: 3}
+  announcer_missionCompleted: {fileID: 8300000, guid: 5cac7ed17c7d845d3aa15ddd378af0e8, type: 3}
+  announcer_newConstructionOptions: {fileID: 8300000, guid: 1ae372350ffc24d8ba0d2c191e65784c, type: 3}
+  announcer_newObjective: {fileID: 8300000, guid: 05c4c2877b9c74522bd787e204466d4d, type: 3}
+  announcer_unitLost: {fileID: 8300000, guid: 1c2779a4151f1446cb84cd63e8e22eeb, type: 3}
+  announcer_unitReady: {fileID: 8300000, guid: 452687cf54cef4af6ac2c15140cc0daa, type: 3}
+  announcer_primaryBuildingSelected: {fileID: 0}
 --- !u!20 &1514448831429975428
 Camera:
   m_ObjectHideFlags: 0

@@ -6,7 +6,7 @@ using Object = UnityEngine.Object;
 
 public class PlayerController : WorldBehaviour {
 
-    private Player owningPlayer;
+    private Player player;
 
     [SerializeField] private Camera playerCamera;
     [SerializeField] private PlayerCameraManager playerCameraManagerPrefab;
@@ -41,35 +41,46 @@ public class PlayerController : WorldBehaviour {
     public bool enableBuildingPlacement = true;
 
     private Building buildingPrefabToPlace;
-
-    private float buildingPlacementYaw = 0;
-
-    [SerializeField] private List<Building> availableBuildingsToPlace = new();
     private Building buildingGhost;
 
     [SerializeField] private int spawnedUnitsCount = 0;
     public bool showMovePathCells;
 
-    public IReadOnlyList<Building> AvailableBuildingsToPlace => availableBuildingsToPlace;
-
     public Vector2? MarqueeStart => marqueeStart;
     public Vector2 MarqueeEnd => marqueeEnd;
     public PlayerHUD PlayerHUD => playerHUD;
-    public Player OwningPlayer => owningPlayer;
+    public Player Player => player;
 
-    public event Action<Building, Building> onBuildingConstructionComplete;
-    public event Action<Building, Unit> onUnitConstructionComplete;
-    public event Action<Building> onPrimaryBuildingSelected;
-    public event Action<RefineryBuilding, float> onGoldAdded;
+    [SerializeField] private AudioClip announcer_battleControlActivated;
+    [SerializeField] private AudioClip announcer_battleControlTerminated;
+    [SerializeField] private AudioClip announcer_building;
+    [SerializeField] private AudioClip announcer_constructionComplete;
+    [SerializeField] private AudioClip announcer_incomingTransmission;
+    [SerializeField] private AudioClip announcer_insufficientFunds;
+    [SerializeField] private AudioClip announcer_missionCompleted;
+    [SerializeField] private AudioClip announcer_newConstructionOptions;
+    [SerializeField] private AudioClip announcer_newObjective;
+    [SerializeField] private AudioClip announcer_unitLost;
+    [SerializeField] private AudioClip announcer_unitReady;
+    [SerializeField] private AudioClip announcer_primaryBuildingSelected;
 
-    private readonly Dictionary<Building, Building> primaryBuildings = new();
+    private readonly HashSet<Building.ConstructionOption> constructionOptions = new();
+    private readonly HashSet<Building.ConstructionOption> oldConstructionOptions = new();
 
     public void Initialize(World world, PlayerController prefab, Player player) {
         base.Initialize(world, prefab);
-        owningPlayer = player;
+        this.player = player;
+    }
+
+    public IEnumerable<Building.ConstructionOption> EnumerateConstructionOptions() {
+        foreach (var buildingType in player.EnumerateBuildingTypes()) {
+            foreach (var constructionOption in buildingType.ConstructionOptions)
+                yield return constructionOption;
+        }
     }
 
     private void Awake() {
+
         unitLayerMask = LayerMask.GetMask("Unit");
         buildingLayerMask = LayerMask.GetMask("Building");
         ignoreRaycastMask = LayerMask.GetMask("Ignore Raycast");
@@ -78,17 +89,38 @@ public class PlayerController : WorldBehaviour {
 
         if (playerCameraManagerPrefab)
             playerCameraManager = World.Spawn(playerCameraManagerPrefab, playerCameraManager => { playerCameraManager.Initialize(this); });
-        if (playerHUDPrefab)
+
+        if (playerHUDPrefab) {
             playerHUD = World.Spawn(playerHUDPrefab, World.PlayerHUDContainer, playerHUD => { playerHUD.Initialize(World, playerHUDPrefab, this); });
+            playerHUD.RespawnBuildIcons(EnumerateConstructionOptions());
+        }
 
         UpdatePlayerCameraTransform();
 
         if (TryTraceRay(new Vector2(Screen.width, Screen.height) / 2, out var hitInfo, ~unitLayerMask & ~ignoreRaycastMask))
             for (var i = 0; i < spawnedUnitsCount; i++)
                 World.Spawn(unitPrefab, unit => {
-                    unit.Initialize(World, unitPrefab, owningPlayer);
+                    unit.Initialize(World, unitPrefab, player);
                     unit.transform.position = hitInfo.point;
                 });
+
+        World.onObjectSpawned += OnBuildingSpawned;
+    }
+
+    private void OnDestroy() {
+        World.onObjectSpawned -= OnBuildingSpawned;
+    }
+
+    private void OnBuildingSpawned(Object obj) {
+        if (obj is Building building && !building.IsGhost && building.OwningPlayer == player) {
+            constructionOptions.Clear();
+            constructionOptions.UnionWith(EnumerateConstructionOptions());
+            constructionOptions.ExceptWith(oldConstructionOptions);
+            if (constructionOptions.Count > 0)
+                NotifyNewConstructionOptions();
+            oldConstructionOptions.Clear();
+            oldConstructionOptions.UnionWith(EnumerateConstructionOptions());
+        }
     }
 
     private static Unit FindLoudestUnit(IReadOnlyCollection<Unit> units) {
@@ -249,22 +281,20 @@ public class PlayerController : WorldBehaviour {
 
         if (enableBuildingPlacement) {
             if (buildingPrefabToPlace) {
-                buildingPlacementYaw += Input.mouseScrollDelta.y * 5;
 
                 buildingGhost = World.BuildingGhostsSystem.Get(buildingPrefabToPlace);
                 if (TryTraceRay(Input.mousePosition, out var hitInfo)) {
                     World.BuildingGhostsSystem.Show(buildingPrefabToPlace);
                     buildingGhost.transform.position = hitInfo.point;
-                    buildingGhost.transform.rotation = Quaternion.Euler(0, buildingPlacementYaw, 0);
 
-                    var canBePlaced = CanBePlaced(buildingPrefabToPlace, hitInfo.point, buildingPlacementYaw);
+                    var canBePlaced = CanBePlaced(buildingPrefabToPlace, hitInfo.point);
                     buildingGhost.IsValidGhostPlacement = canBePlaced;
 
                     if (canBePlaced && Input.GetMouseButtonDown(MouseButton.left)) {
-                        var building = World.Spawn(buildingPrefabToPlace, building => {
-                            building.Initialize(World, buildingPrefabToPlace, owningPlayer);
+                        var buildingsCountOfThisType = player.GetBuildingsCountOf(buildingPrefabToPlace);
+                        World.Spawn(buildingPrefabToPlace, building => {
+                            building.Initialize(World, buildingPrefabToPlace, player, buildingsCountOfThisType == 0);
                             building.transform.position = hitInfo.point;
-                            building.transform.rotation = Quaternion.Euler(0, buildingPlacementYaw, 0);
                             building.SetPlayConstructionAnimationOnStart(true);
                         });
                         StopBuildingPlacement();
@@ -278,7 +308,7 @@ public class PlayerController : WorldBehaviour {
         if (Input.GetKeyDown(KeyCode.Space)) {
             if (TryTraceRay(Input.mousePosition, out var hitInfo))
                 World.Spawn(unitPrefab, unit => {
-                    unit.Initialize(World, unitPrefab, owningPlayer);
+                    unit.Initialize(World, unitPrefab, player);
                     unit.transform.position = hitInfo.point;
                 });
         }
@@ -316,7 +346,8 @@ public class PlayerController : WorldBehaviour {
         }
     }
 
-    private bool CanBePlaced(Building building, Vector3 position, float yaw) {
+    // TODO: does not work currently
+    private bool CanBePlaced(Building building, Vector3 position) {
         foreach (var cell in World.Grid.EnumerateIndicesInside(building.BoxCollider.bounds)) {
             if (World.Grid[cell].occupiedBy || World.Grid[cell].reservedBy)
                 return false;
@@ -324,30 +355,36 @@ public class PlayerController : WorldBehaviour {
         return true;
     }
 
-    public void SetPrimaryBuilding(Building buildingPrefab, Building building) {
-        if (primaryBuildings.ContainsKey(buildingPrefab)) {
-            primaryBuildings[buildingPrefab] = building;
-            onPrimaryBuildingSelected?.Invoke(building);
-        }
-        else
-            primaryBuildings.Add(buildingPrefab, building);
-    }
-
-    public void RemovePrimaryBuilding(Building building) {
-        if (primaryBuildings.TryGetValue((Building)building.Prefab, out var primaryBuilding) && primaryBuilding == building)
-            primaryBuildings.Remove((Building)building.Prefab);
+    public void NotifyStartBuilding(Building factory, Building.ConstructionOption constructionOption) {
+        World.AudioSystem.SayAnnouncerVoiceLine(announcer_building);
     }
 
     public void NotifyConstructionComplete(Building factory, Object prefab) {
         var unit = prefab as Unit;
         var building = prefab as Building;
-        if (building)
-            onBuildingConstructionComplete?.Invoke(factory, building);
+        if (building) {
+            World.AudioSystem.SayAnnouncerVoiceLine(announcer_constructionComplete);
+        }
         if (unit)
-            onUnitConstructionComplete?.Invoke(factory, unit);
+            World.AudioSystem.SayAnnouncerVoiceLine(announcer_unitReady);
     }
 
     public void NotifyGoldAdded(RefineryBuilding refinery, float amountAdded) {
-        onGoldAdded?.Invoke(refinery, amountAdded);
+        //World.AudioSystem.SayAnnouncerVoiceLine(announcer_incomingTransmission);
+    }
+
+    public void NotifyPrimaryBuildingSelected(Building primaryBuilding) {
+        World.AudioSystem.SayAnnouncerVoiceLine(announcer_primaryBuildingSelected);
+    }
+
+    public void NotifyNewConstructionOptions() {
+        World.AudioSystem.SayAnnouncerVoiceLine(announcer_newConstructionOptions);
+    }
+    
+    public void NotifyBattleControlActivated() {
+        World.AudioSystem.SayAnnouncerVoiceLine(announcer_battleControlActivated);
+    }
+    public void NotifyBattleControlTerminated() {
+        World.AudioSystem.SayAnnouncerVoiceLine(announcer_battleControlTerminated);
     }
 }

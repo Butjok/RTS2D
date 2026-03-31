@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4128571816054445560}
   - component: {fileID: 4935524242503908259}
   m_Layer: 9
-  m_Name: Building
+  m_Name: ConstructionYard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -60,17 +60,24 @@ MonoBehaviour:
   owningPlayer: {fileID: 0}
   renderers:
   - {fileID: 7025007332706422122}
-  buildableUnitPrefabs:
-  - {fileID: 8676087694340533686, guid: cbb1a2defcacc4ea2af8ce9538274c01, type: 3}
-  - {fileID: 8676087694340533686, guid: 92081db9d97d84699a8154bfcd1d188a, type: 3}
   sharedGhostMaterials:
   - {fileID: 2100000, guid: 1e91d09069d8e4742893af05d8627d11, type: 2}
   boxCollider: {fileID: 4935524242503908259}
   isFullyBuilt: 1
   canEverBeSelected: 1
-  cost: 1000
-  buildTime: 60
-  prerequisites: []
+  constructionOptions:
+  - sourceBuildingType: {fileID: 4128571816054445560}
+    unitPrefab: {fileID: 0}
+    buildingPrefab: {fileID: 6527514968814526426, guid: b41211d7f71b6485ab33ea2912d24a16, type: 3}
+    cost: 5000
+    buildTime: 15
+    prerequisites: []
+  - sourceBuildingType: {fileID: 4128571816054445560}
+    unitPrefab: {fileID: 0}
+    buildingPrefab: {fileID: 4128571816054445560, guid: 0d1891175bded4b09921e28beacda3bf, type: 3}
+    cost: 5000
+    buildTime: 15
+    prerequisites: []
 --- !u!65 &4935524242503908259
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -90,7 +97,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 2, y: 5, z: 2}
+  m_Size: {x: 2, y: 1, z: 2}
   m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!1 &8580499463624096098
 GameObject:

@@ -11,6 +11,7 @@ public class LevelScriptBase : WorldBehaviour {
             World.PlayerController.PlayerHUD.ShowVictoryScreen();
         else
             World.PlayerController.PlayerHUD.ShowDefeatScreen();
+        
         while (!Input.GetKeyDown(KeyCode.Space))
             yield return null;
         yield return null; // consume key press
@@ -49,7 +50,7 @@ public class LevelScriptBase : WorldBehaviour {
     }
 
     protected IEnumerator MatchStartAnimation() {
-        World.AudioSystem.SayAnnouncerVoiceLine(World.AudioSystem.AnnouncerBattleControlActivated);
+        World.PlayerController.NotifyBattleControlActivated();
         World.PlayerController.enabled = true;
         yield break;
     }

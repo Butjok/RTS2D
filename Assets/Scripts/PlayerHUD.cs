@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerHUD : WorldBehaviour {
 
@@ -12,7 +13,7 @@ public class PlayerHUD : WorldBehaviour {
         [NonSerialized] public GUIStyle style;
     }
 
-    [SerializeField] private PlayerController owningPlayerController;
+    [SerializeField] private PlayerController playerController;
 
     [Header("Selection Marquee")] [SerializeField]
     private Color marqueeColor = new(1, 1, 1, .5f);
@@ -36,24 +37,28 @@ public class PlayerHUD : WorldBehaviour {
     };
 
     [SerializeField] private RadarRenderer radarRenderer;
-    
+
     [SerializeField] private GameObject victoryScreen;
     [SerializeField] private GameObject defeatScreen;
 
-    public void Initialize(World world, PlayerHUD prefab, PlayerController owningPlayerController) {
+    [SerializeField] private Button buildIconTemplate;
+
+    public PlayerController PlayerController => playerController;
+
+    public void Initialize(World world, PlayerHUD prefab, PlayerController playerController) {
         base.Initialize(world, prefab);
-        this.owningPlayerController = owningPlayerController;
+        this.playerController = playerController;
     }
 
     private void Awake() {
-        
+
         // Hide screen just in case
 
         victoryScreen.SetActive(false);
         defeatScreen.SetActive(false);
-        
+
         // Background color texture for selection marquee
-        
+
         marqueeBackgroundTexture = new Texture2D(1, 1);
         marqueeBackgroundTexture.SetPixel(0, 0, marqueeColor);
         marqueeBackgroundTexture.Apply();
@@ -62,7 +67,7 @@ public class PlayerHUD : WorldBehaviour {
                 background = marqueeBackgroundTexture
             }
         };
-        
+
         // Background color textures for unit health bars
 
         for (var i = 0; i < unitHealthBarColorRamp.Count; i++) {
@@ -121,16 +126,16 @@ public class PlayerHUD : WorldBehaviour {
     private void OnGUI() {
         GUI.depth = -100;
 
-        if (owningPlayerController.MarqueeStart is { } actualMarqueeStart) {
-            var min = Vector2.Min(actualMarqueeStart, owningPlayerController.MarqueeEnd);
-            var max = Vector2.Max(actualMarqueeStart, owningPlayerController.MarqueeEnd);
+        if (playerController.MarqueeStart is { } actualMarqueeStart) {
+            var min = Vector2.Min(actualMarqueeStart, playerController.MarqueeEnd);
+            var max = Vector2.Max(actualMarqueeStart, playerController.MarqueeEnd);
             var rectangle = new Rect(min, max - min);
             DrawRectangle(ToGUICoordinates(rectangle), marqueeGUIStyle);
         }
 
         foreach (var selectable in World.Selectables)
             if (selectable is IHasHealth health && (selectable.IsSelected || health.LastDamageTime.HasValue && Time.time - health.LastDamageTime.Value <= 5)) {
-                var onScreenBounds = GetOnScreenBounds(selectable.SelectionBounds, owningPlayerController.PlayerCamera);
+                var onScreenBounds = GetOnScreenBounds(selectable.SelectionBounds, playerController.PlayerCamera);
                 var healthBarRectangle = ToGUICoordinates(new Rect(
                     onScreenBounds.xMin, onScreenBounds.yMin - unitHealthBarHeight,
                     onScreenBounds.width, unitHealthBarHeight
@@ -161,12 +166,27 @@ public class PlayerHUD : WorldBehaviour {
                     DrawRectangle(healthBarFilledRectangle, fillStyle);
             }
     }
-    
+
     public void ShowVictoryScreen() {
         victoryScreen.SetActive(true);
     }
 
     public void ShowDefeatScreen() {
         defeatScreen.SetActive(true);
+    }
+
+    public void RespawnBuildIcons(IEnumerable<Building.ConstructionOption> constructionOptions) {
+        
+        foreach (var child in buildIconTemplate.transform.parent.GetComponentsInChildren<BuildIcon>())
+            Destroy(child.gameObject);
+        
+        if (buildIconTemplate.gameObject.activeSelf)
+            buildIconTemplate.gameObject.SetActive(false);
+        
+        foreach (var constructionOption in constructionOptions) {
+            var buildIcon = Instantiate(buildIconTemplate, buildIconTemplate.transform.parent).GetComponent<BuildIcon>();
+            buildIcon.Initialize(constructionOption);
+            buildIcon.gameObject.SetActive(true);
+        }
     }
 }

@@ -17,12 +17,14 @@ public class PrePlacedInfo : MonoBehaviour {
     [SerializeField] private WorldBehaviour target;
     [SerializeField] private WorldBehaviour prefab;
     [SerializeField] private int playerId = -1;
+    [SerializeField] private bool isPrimaryBuilding;
 
     public World World => world;
     public WorldBehaviour Target => target;
     public WorldBehaviour Prefab => prefab;
     public int PlayerId => playerId;
-
+    public bool IsPrimaryBuilding => isPrimaryBuilding;
+    
     public Player Player {
         get {
             foreach (var player in World.Players)

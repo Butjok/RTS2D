@@ -2,37 +2,59 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
-public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBuildable, ICanBePrePlaced {
+public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, ICanBePrePlaced {
+
     [Serializable]
-    public struct BuildingPrerequisite {
-        [SerializeField] private Building buildingPrefab;
-        [SerializeField] private int requiredCount;
+    public class ConstructionOption {
 
-        public Building BuildingPrefab => buildingPrefab;
-        public int RequiredCount => requiredCount;
+        [Serializable]
+        public struct Prerequisite {
+            [SerializeField] private Building buildingType;
+            [SerializeField] private int requiredCount;
+
+            public Building BuildingType => buildingType;
+            public int RequiredCount => requiredCount;
+        }
+
+        [SerializeField] private Building sourceBuildingType; // which building type (prefab) is the source of this construction option
+        [SerializeField] private Unit unitPrefab;
+        [SerializeField] private Building buildingPrefab;
+        [SerializeField] private float cost;
+        [SerializeField] private float buildTime;
+        [SerializeField] private List<Prerequisite> prerequisites = new();
+
+        public Object Prefab => unitPrefab ? unitPrefab : buildingPrefab;
+        public float Cost => cost;
+        public float BuildTime => buildTime;
+        public IReadOnlyList<Prerequisite> Prerequisites => prerequisites;
+        public Building SourceBuildingType => sourceBuildingType;
+
+        public bool MeetsPrerequisites(Player player) {
+            foreach (var prerequisite in prerequisites) {
+                var count = player.GetBuildingsCountOf(prerequisite.BuildingType);
+                if (count < prerequisite.RequiredCount)
+                    return false;
+            }
+            return true;
+        }
     }
 
     [Serializable]
-    public class BuildingQueueItem {
-        [SerializeField] private Object prefab;
-        [SerializeField] private float timeElapsed;
+    public class ConstructionQueueItem {
+        [SerializeField] private ConstructionOption constructionOption;
+        public float timeElapsed;
+        public bool wasReportedAsCompleted;
 
-        public Object Prefab => prefab;
+        public ConstructionOption ConstructionOption => constructionOption;
+        public float Progress => Mathf.Clamp01(timeElapsed / constructionOption.BuildTime);
 
-        public float TimeElapsed {
-            get => timeElapsed;
-            set => timeElapsed = value;
-        }
-
-        public float BuildTime => ((IBuildable)prefab).BuildTime;
-
-        public float Progress => Mathf.Clamp01(timeElapsed / BuildTime);
-
-        public BuildingQueueItem(IBuildable buildablePrefab) {
-            prefab = (Object)buildablePrefab;
+        public ConstructionQueueItem(ConstructionOption constructionOption) {
+            this.constructionOption = constructionOption;
         }
     }
 
@@ -41,17 +63,15 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
 
     [SerializeField] private Player owningPlayer;
     [SerializeField] private List<Renderer> renderers = new();
-    [SerializeField] private List<Unit> buildableUnitPrefabs = new();
     [SerializeField] private List<Material> sharedGhostMaterials = new();
 
     [SerializeField] private BoxCollider boxCollider;
 
     [SerializeField] private bool isFullyBuilt = true;
     [SerializeField] private bool canEverBeSelected = true;
-    [SerializeField] private int cost = 1000;
-    [SerializeField] private float buildTime = 60;
-    [SerializeField] private List<BuildingPrerequisite> prerequisites = new();
-    private readonly Queue<BuildingQueueItem> buildingQueue = new();
+    [SerializeField] private List<ConstructionOption> constructionOptions = new();
+
+    private readonly Queue<ConstructionQueueItem> constructionQueue = new();
 
     private float health = 1;
     private float? lastDamageTime;
@@ -64,13 +84,24 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
 
     public BoxCollider BoxCollider => boxCollider;
 
-    public void Initialize(World world, Building prefab, Player owningPlayer) {
+    public IReadOnlyList<ConstructionOption> ConstructionOptions {
+        get {
+#if UNITY_EDITOR
+            Debug.Assert(PrefabUtility.IsPartOfPrefabAsset(this), $"Building {name} should be a prefab asset to access construction options. If you want to access construction options of an instance, consider making construction options static or accessing them through the prefab.");
+#endif
+            return constructionOptions;
+        }
+    }
+
+    public void Initialize(World world, Building prefab, Player owningPlayer, bool isPrimaryBuilding) {
         base.Initialize(world, prefab);
         OwningPlayer = owningPlayer;
+        if (isPrimaryBuilding)
+            OwningPlayer.SetPrimaryBuilding(this);
     }
 
     public void InitializeFromPrePlacedInfo(PrePlacedInfo info) {
-        Initialize(info.World, info.Prefab as Building, info.Player);
+        Initialize(info.World, (Building)info.Prefab, info.Player, info.IsPrimaryBuilding);
     }
 
     public Color PlayerColor {
@@ -172,48 +203,45 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
 
     public void ReceiveAttackFrom(Unit attacker) {
         lastDamageTime = Time.time;
-        var damage = World.DamageStats.GetDamage((Unit)attacker.Prefab, (Building)Prefab);
+        var damage = World.DamageStats.GetDamage(attacker.GetPrefab<Unit>(), GetPrefab<Building>());
         Health -= damage;
     }
 
     public bool ObjectExists => this;
 
-    public int? Cost => cost;
-    public float BuildTime => buildTime;
-
-    public bool PrerequisitesSatisfied {
-        get {
-            if (prerequisites.Count == 0)
-                return true;
-            foreach (var prerequisite in prerequisites)
-                if (owningPlayer.GetBuildingsCountOf(prerequisite.BuildingPrefab) < prerequisite.RequiredCount)
-                    return false;
-            return true;
-        }
-    }
-
-    public BuildingQueueItem StartBuilding(IBuildable buildable) {
-        //Debug.Assert(buildableUnitPrefabs.Contains(buildable));
-        var itemInConstruction = new BuildingQueueItem(buildable);
-        buildingQueue.Enqueue(itemInConstruction);
-        World.AudioSystem.SayAnnouncerVoiceLine(World.AudioSystem.AnnouncerBuilding);
+    public ConstructionQueueItem StartBuilding(ConstructionOption constructionOption) {
+        Debug.Assert(constructionOption.MeetsPrerequisites(owningPlayer));
+        var itemInConstruction = new ConstructionQueueItem(constructionOption);
+        constructionQueue.Enqueue(itemInConstruction);
+        if (owningPlayer.PlayerController)
+            owningPlayer.PlayerController.NotifyStartBuilding(this, constructionOption);
         return itemInConstruction;
     }
 
     private void Update() {
-        if (buildingQueue.TryPeek(out var item)) {
-            item.TimeElapsed += Time.deltaTime;
-            if (item.TimeElapsed >= item.BuildTime) {
-                buildingQueue.Dequeue();
+        if (constructionQueue.TryPeek(out var constructionQueueItem)) {
+            
+            constructionQueueItem.timeElapsed += Time.deltaTime;
+            
+            if (constructionQueueItem.timeElapsed >= constructionQueueItem.ConstructionOption.BuildTime && !constructionQueueItem.wasReportedAsCompleted) {
+                constructionQueueItem.wasReportedAsCompleted = true;
+                
                 if (owningPlayer.PlayerController)
-                    owningPlayer.PlayerController.NotifyConstructionComplete(this, item.Prefab);
+                    owningPlayer.PlayerController.NotifyConstructionComplete(this, constructionQueueItem.ConstructionOption.Prefab);
+                
+                if (constructionQueueItem.ConstructionOption.Prefab is Unit) {
+                    constructionQueue.Dequeue();
+                }
+                else if (constructionQueueItem.ConstructionOption.Prefab is Building) {
+                    
+                }
             }
         }
     }
 
     private void OnDestroy() {
-        if (owningPlayer && owningPlayer.PlayerController)
-            owningPlayer.PlayerController.RemovePrimaryBuilding(this);
+        if (owningPlayer)
+            owningPlayer.RemovePrimaryBuilding(this);
     }
 
     public float? LastDamageTime => lastDamageTime;

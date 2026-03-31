@@ -54,7 +54,7 @@ public class World : MonoBehaviour {
     public GameplayStateMachine GameplayStateMachine => gameplayStateMachine;
 
     private void Awake() {
-        
+
         grid.Initialize();
 
         var redPlayer = Spawn<Player>(player => {
@@ -63,15 +63,6 @@ public class World : MonoBehaviour {
         });
         players.Add(redPlayer);
 
-        if (playerControllerPrefab) {
-            playerController = Spawn(playerControllerPrefab, playerController => {
-                playerController.Initialize(this, playerControllerPrefab, redPlayer);
-                playerController.enabled = false;
-                worldCamera = playerController.PlayerCamera;
-            });
-            redPlayer.PlayerController = playerController;
-        }
-        
         var bluePlayer = Spawn<Player>(player => {
             player.Initialize(this, null, 1, Player.Kind.AI);
             player.Color = Color.blue;
@@ -90,19 +81,32 @@ public class World : MonoBehaviour {
                 buildings.Add(prePlacedBuilding);
                 buildingsSet.Add(prePlacedBuilding);
                 grid.SetNotWalkable(prePlacedBuilding);
+                prePlacedBuilding.OwningPlayer.IncrementBuildingsCountOf(prePlacedBuilding.GetPrefab<Building>());
             }
             if (prePlacedInfo.Target is ISelectable selectable)
                 selectables.Add(selectable);
             if (prePlacedInfo.Target is Unit unit)
                 units.Add(unit);
         }
-        
+
         damageStats.EnsureTablesArePrecached();
+        
+        if (playerControllerPrefab) {
+            playerController = Spawn(playerControllerPrefab, playerController => {
+                playerController.Initialize(this, playerControllerPrefab, redPlayer);
+                playerController.enabled = false;
+                worldCamera = playerController.PlayerCamera;
+            });
+            redPlayer.PlayerController = playerController;
+        }
     }
 
     public T Spawn<T>(Action<T> setup = null) where T : WorldBehaviour {
-        var instance = new GameObject(typeof(T).Name).AddComponent<T>();
+        var go = new GameObject(typeof(T).Name);
+        go.SetActive(false);
+        var instance = go.AddComponent<T>();
         setup?.Invoke(instance);
+        go.SetActive(true);
         onObjectSpawned?.Invoke(instance);
         return instance;
     }
@@ -124,7 +128,6 @@ public class World : MonoBehaviour {
         if (instance is Building building && !building.IsGhost) {
             buildings.Add(building);
             buildingsSet.Add(building);
-            building.OwningPlayer.IncrementBuildingsCountOf(prefab as Building);
         }
         if (instance is ISelectable selectable && selectable.CanEverBeSelected)
             selectables.Add(selectable);
@@ -145,16 +148,15 @@ public class World : MonoBehaviour {
         if (obj is Building building) {
             buildings.Remove(building);
             buildingsSet.Remove(building);
-            building.OwningPlayer.DecrementBuildingsCountOf(building);
             buildingOwner = building.OwningPlayer;
         }
-
         if (obj is ISelectable selectable)
             selectables.Remove(selectable);
 
         Object.Destroy(obj.gameObject);
 
         if (buildingOwner) {
+            
             // check if player has any building left
             var hasAnyBuildingLeft = false;
             foreach (var building2 in buildings)
@@ -202,9 +204,14 @@ public abstract class WorldBehaviour : MonoBehaviour {
     [SerializeField] private World world;
 
     public World World => world;
-    public WorldBehaviour Prefab => prefab;
+
+    public T GetPrefab<T>() where T : WorldBehaviour {
+        Debug.Assert(prefab is T, $"Prefab of {name} is of type {prefab.GetType().Name} but requested type is {typeof(T).Name}.");
+        return (T)prefab;
+    }
 
     private bool wasInitialized;
+
     protected void Initialize(World world, WorldBehaviour prefab = null) {
         Debug.Assert(!wasInitialized, $"WorldBehaviour {name} was already initialized.");
         wasInitialized = true;

@@ -1,19 +1,27 @@
-using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class BuildableIcon : Image {
+public class BuildIcon : Image {
 
     private static int progressPropertyId = Shader.PropertyToID("_Progress");
 
-    [SerializeField] private World world;
+    [SerializeField] private PlayerHUD owningHUD;
     [SerializeField] private Material baseMaterial;
     [SerializeField] private float progress;
-    private Material materialInstance;
-    private Building.BuildingQueueItem itemInConstruction;
+    [SerializeField] private TMP_Text label;
 
-    public Building testBuilding;
-    public Unit unitPrefab;
+    private Material materialInstance;
+    private Building.ConstructionOption constructionOption;
+    private Building.ConstructionQueueItem constructionQueueItem;
+
+    public void Initialize(Building.ConstructionOption constructionOption) {
+        this.constructionOption = constructionOption;
+        InstantiateMaterial();
+        Progress = 1;
+        if (label)
+            label.text = constructionOption.Prefab.name;
+    }
 
     [ContextMenu("Instantiate Material")]
     private void InstantiateMaterial() {
@@ -23,19 +31,14 @@ public class BuildableIcon : Image {
         }
     }
 
-    protected override void Awake() {
-        base.Awake();
-        InstantiateMaterial();
-        Progress = 1;
-    }
-
     protected override void OnValidate() {
         Progress = progress;
+        label = GetComponentInChildren<TMP_Text>();
     }
 
     private void Update() {
-        if (itemInConstruction != null)
-            Progress = itemInConstruction.Progress;
+        if (constructionQueueItem != null)
+            Progress = constructionQueueItem.Progress;
     }
 
     public float Progress {
@@ -48,9 +51,9 @@ public class BuildableIcon : Image {
     }
 
     public void StartBuilding() {
-        if (!testBuilding)
-            testBuilding = FindObjectsByType<Building>(FindObjectsSortMode.None).FirstOrDefault(b => !b.OwningPlayer.IsAi);
-        itemInConstruction = testBuilding.StartBuilding(unitPrefab);
+        var primaryBuilding = owningHUD.PlayerController.Player.GetPrimaryBuilding(constructionOption.SourceBuildingType);
+        Debug.Assert(primaryBuilding);
+        constructionQueueItem = primaryBuilding.StartBuilding(constructionOption);
     }
 
     protected override void OnPopulateMesh(VertexHelper toFill) {

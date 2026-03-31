@@ -18,31 +18,6 @@ public class AudioSystem : WorldBehaviour {
     [SerializeField] private AudioSource unitVoiceAudioSourceBackground;
     [SerializeField] private AudioSource announcerAudioSource;
 
-    [SerializeField] private AudioClip announcer_battleControlActivated;
-    [SerializeField] private AudioClip announcer_battleControlDeactivated;
-    [SerializeField] private AudioClip announcer_building;
-    [SerializeField] private AudioClip announcer_constructionComplete;
-    [SerializeField] private AudioClip announcer_incomingTransmission;
-    [SerializeField] private AudioClip announcer_insufficientFunds;
-    [SerializeField] private AudioClip announcer_missionCompleted;
-    [SerializeField] private AudioClip announcer_newConstructionOptions;
-    [SerializeField] private AudioClip announcer_newObjective;
-    [SerializeField] private AudioClip announcer_unitLost;
-    [SerializeField] private AudioClip announcer_unitReady;
-    [SerializeField] private AudioClip announcer_primaryBuildingSelected;
-
-    public AudioClip AnnouncerBattleControlActivated => announcer_battleControlActivated;
-    public AudioClip AnnouncerBattleControlDeactivated => announcer_battleControlDeactivated;
-    public AudioClip AnnouncerBuilding => announcer_building;
-    public AudioClip AnnouncerConstructionComplete => announcer_constructionComplete;
-    public AudioClip AnnouncerIncomingTransmission => announcer_incomingTransmission;
-    public AudioClip AnnouncerInsufficientFunds => announcer_insufficientFunds;
-    public AudioClip AnnouncerMissionCompleted => announcer_missionCompleted;
-    public AudioClip AnnouncerNewConstructionOptions => announcer_newConstructionOptions;
-    public AudioClip AnnouncerNewObjective => announcer_newObjective;
-    public AudioClip AnnouncerUnitLost => announcer_unitLost;
-    public AudioClip AnnouncerUnitReady => announcer_unitReady;
-
     private readonly Dictionary<AudioClip, float> lastTimeAudioClipWasPlayed = new();
     private AudioClip lastSaidUnitVoiceLineClip;
     private IEnumerator musicPlayingLoopCoroutine;
@@ -50,33 +25,6 @@ public class AudioSystem : WorldBehaviour {
     private void OnValidate() {
         if (musicAudioSource == null)
             musicAudioSource = GetComponent<AudioSource>();
-    }
-
-    private void Awake() {
-        World.PlayerController.onBuildingConstructionComplete += OnBuildingConstructionComplete;
-        World.PlayerController.onUnitConstructionComplete += OnUnitConstructionComplete;
-        World.PlayerController.onPrimaryBuildingSelected += OnPrimaryBuildingSelected;
-        World.PlayerController.onGoldAdded += OnGoldAdded;
-    }
-
-    private void OnDestroy() {
-        World.PlayerController.onBuildingConstructionComplete -= OnBuildingConstructionComplete;
-        World.PlayerController.onUnitConstructionComplete -= OnUnitConstructionComplete;
-        World.PlayerController.onPrimaryBuildingSelected -= OnPrimaryBuildingSelected;
-        World.PlayerController.onGoldAdded -= OnGoldAdded;
-    }
-
-    private void OnBuildingConstructionComplete(Building factory, Building buildingPrefab) {
-        SayAnnouncerVoiceLine(announcer_constructionComplete);
-    }
-    private void OnUnitConstructionComplete(Building factory, Unit unitPrefab) {
-        SayAnnouncerVoiceLine(announcer_unitReady);
-    }
-    private void OnPrimaryBuildingSelected(Building primaryBuilding) {
-         SayAnnouncerVoiceLine(announcer_primaryBuildingSelected);
-    }
-    private void OnGoldAdded(RefineryBuilding refinery, float amount) {
-        
     }
 
     private void Start() {

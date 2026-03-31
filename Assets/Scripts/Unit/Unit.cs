@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBuildable, ICanBePrePlaced {
+public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, ICanBePrePlaced {
 
     public enum Kind {
         Infantry,
@@ -15,8 +15,6 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     [SerializeField] private Player owningPlayer;
 
     [SerializeField] private float health = 1;
-    [SerializeField] private int cost = 1000;
-    [SerializeField] private float buildTime = 15;
     [SerializeField] private float radiusInFormation = .5f;
 
     [SerializeField] private List<Renderer> renderers = new();
@@ -153,7 +151,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
 
     public void ReceiveAttackFrom(Unit attacker) {
         lastDamageTime = Time.time;
-        var damage = World.DamageStats.GetDamage((Unit)attacker.Prefab, (Unit)Prefab);
+        var damage = World.DamageStats.GetDamage(attacker.GetPrefab<Unit>(), GetPrefab<Unit>());
         Health -= damage;
     }
 
@@ -171,8 +169,4 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, IBui
     public bool CanAttack(Unit otherUnit) {
         return otherUnit && owningPlayer != otherUnit.OwningPlayer;
     }
-
-    public int? Cost => cost;
-    public float BuildTime => buildTime;
-    public bool PrerequisitesSatisfied => true;
 }
