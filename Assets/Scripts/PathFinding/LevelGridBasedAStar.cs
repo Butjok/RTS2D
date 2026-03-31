@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Priority_Queue;
 using UnityEngine;
 
-public class GridBasedAStar {
+public class LevelGridBasedAStar {
 
     [Serializable]
     public struct Node {
@@ -13,7 +13,7 @@ public class GridBasedAStar {
         public ulong runSerial;
         public Vector2Int? cameFrom;
 
-        public float HCost(Vector2Int goalIndex) => Grid.Distance(index, goalIndex);
+        public float HCost(Vector2Int goalIndex) => LevelGrid.Distance(index, goalIndex);
         public float FCost(Vector2Int goalIndex) => gCost + HCost(goalIndex);
 
         public Node(Vector2Int index) {
@@ -24,7 +24,7 @@ public class GridBasedAStar {
         }
     }
 
-    private readonly Grid grid;
+    private readonly LevelGrid grid;
     private readonly Node[,] nodes;
     private readonly SimplePriorityQueue<Vector2Int> openSet = new();
 
@@ -32,7 +32,7 @@ public class GridBasedAStar {
     /// This allows us to avoid having to clear the nodes' data after each run, which would be costly.
     private ulong runSerial = 0;
 
-    public GridBasedAStar(Grid grid) {
+    public LevelGridBasedAStar(LevelGrid grid) {
         this.grid = grid;
         nodes = new Node[grid.Size.x, grid.Size.y];
         for (var x = 0; x < grid.Size.x; x++)
@@ -79,7 +79,7 @@ public class GridBasedAStar {
 
                 var offset = neighbourIndex - index;
                 var isDiagonal = offset.x != 0 && offset.y != 0;
-                var moveDistance = isDiagonal ? Grid.sqrt2 : 1;
+                var moveDistance = isDiagonal ? LevelGrid.sqrt2 : 1;
                 var moveCost = moveDistance * (unitAtNeighbour ? 5 : 1);
                 var tentativeGCost = current.gCost + moveCost;
 

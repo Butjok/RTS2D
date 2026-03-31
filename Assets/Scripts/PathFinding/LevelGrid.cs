@@ -11,7 +11,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-public class Grid : WorldBehaviour {
+public class LevelGrid : WorldBehaviour {
 
     public const float cellSize = 1;
     public const float sqrt2 = 1.41421356237f;
@@ -69,13 +69,13 @@ public class Grid : WorldBehaviour {
     [SerializeField] private Vector2 minCellPosition;
     [SerializeField] private CellInfo[,] grid = new CellInfo[0, 0];
     [SerializeField] private Vector2Int size;
-    [SerializeField] private GridBasedAStar gridBasedAStar;
+    [SerializeField] private LevelGridBasedAStar gridBasedAStar;
 
     public bool showWalkableCells;
     public bool showOccupiedCells;
     public bool showReservedCells;
 
-    public GridBasedAStar GridBasedAStar => gridBasedAStar;
+    public LevelGridBasedAStar GridBasedAStar => gridBasedAStar;
     public Vector2Int Size => size;
 
     public bool InBounds(Vector2Int index) {
@@ -136,7 +136,7 @@ public class Grid : WorldBehaviour {
         foreach (var index in EnumerateIndicesInside(staticCollider.bounds))
             this[index].isWalkable = false;
 
-        gridBasedAStar = new GridBasedAStar(this);
+        gridBasedAStar = new LevelGridBasedAStar(this);
         
         // find pre-placed gold
         var prePlacedGolds = FindObjectsByType<PrePlacedGold>(FindObjectsSortMode.None);

@@ -96,7 +96,7 @@ public static class UnitFormation {
     }
 
     private static readonly HashSet<Vector2Int> occupied = new();
-    public static void ProjectToWalkable(Grid grid, Dictionary<Unit, Vector2> positions) {
+    public static void ProjectToWalkable(LevelGrid grid, Dictionary<Unit, Vector2> positions) {
         units.Clear();
         occupied.Clear();
         units.AddRange(positions.Keys);

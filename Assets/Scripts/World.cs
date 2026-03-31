@@ -28,7 +28,7 @@ public class World : MonoBehaviour {
     [SerializeField] private BuildingGhostsSystem buildingGhostsSystem;
     [SerializeField] private LevelScriptBase levelScript;
     [SerializeField] private AudioSystem audioSystem;
-    [SerializeField] private Grid grid;
+    [SerializeField] private LevelGrid grid;
     [SerializeField] private DialogueUI dialogueUI;
     [SerializeField] private DamageStats damageStats;
     [SerializeField] private InGameMenuUI inGameMenuUI;
@@ -54,7 +54,7 @@ public class World : MonoBehaviour {
     public RepathSystem RepathSystem => repathSystem;
     public BuildingGhostsSystem BuildingGhostsSystem => buildingGhostsSystem;
     public AudioSystem AudioSystem => audioSystem;
-    public Grid Grid => grid;
+    public LevelGrid Grid => grid;
     public DialogueUI DialogueUI => dialogueUI;
     public DamageStats DamageStats => damageStats;
     public InGameMenuUI InGameMenuUI => inGameMenuUI;

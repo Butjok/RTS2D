@@ -6,7 +6,7 @@ public static class PathSmoother {
     private static readonly List<Vector2Int> segmentCells = new();
     private static readonly List<Vector2Int> walkableSegmentCells = new();
 
-    public static void SmoothenPath(Grid grid, List<Vector2> smoothPath, IReadOnlyList<Vector2> notSmoothPath, List<Vector2Int> smoothPathCells) {
+    public static void SmoothenPath(LevelGrid grid, List<Vector2> smoothPath, IReadOnlyList<Vector2> notSmoothPath, List<Vector2Int> smoothPathCells) {
         smoothPathCells.Clear();
         smoothPath.Clear();
 
@@ -51,8 +51,8 @@ public static class PathSmoother {
         smoothPathCells.Reverse();
     }
 
-    public static IEnumerable<Vector2Int> AmanatidesWoo(Grid grid, Vector2 start, Vector2 end) {
-        const float cellSize = Grid.cellSize;
+    public static IEnumerable<Vector2Int> AmanatidesWoo(LevelGrid grid, Vector2 start, Vector2 end) {
+        const float cellSize = LevelGrid.cellSize;
 
         var startIndex = grid.WorldPositionToCell(start);
         var x = startIndex.x;

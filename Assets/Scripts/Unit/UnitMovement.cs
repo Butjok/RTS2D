@@ -38,7 +38,7 @@ public class UnitMovement : MonoBehaviour {
 
     /// Raw A* output with axis-aligned nodes with ever tile of the path represented as grid index-based node.
     /// It is dense, meaning that every single tile of the path is represented as a node, even if there are multiple consecutive tiles in a straight line.
-    [SerializeField] private List<GridBasedAStar.Node> aStarPath = new();
+    [SerializeField] private List<LevelGridBasedAStar.Node> aStarPath = new();
 
     /// Same as pathFinderPath but converted to world positions and with the last point being the actual move destination (not necessarily the center of the cell).
     [SerializeField] private List<Vector2> notSmoothPath = new();
@@ -207,7 +207,7 @@ public class UnitMovement : MonoBehaviour {
 
             // find a random nearby cell that is not occupied or reserved and move there
             Vector2Int? freeCell = null;
-            foreach (var offset in Grid.moveDirections) {
+            foreach (var offset in LevelGrid.moveDirections) {
                 var nearbyCell = cell + offset;
                 if (unit.World.Grid.InBounds(nearbyCell) && unit.World.Grid[nearbyCell].isWalkable && !unit.World.Grid[nearbyCell].occupiedBy && !unit.World.Grid[nearbyCell].reservedBy) {
                     freeCell = nearbyCell;
