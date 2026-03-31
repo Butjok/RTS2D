@@ -90,7 +90,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
                 switch (buildStatus) {
 
                     case Status.QueuedOrBuilding: {
-                        Debug.Assert(building.ConstructionQueue.TryPeek(out var item) && item == this, "Only the currently active construction queue item can be resumed");
+                        Debug.Assert(building.ConstructionQueue.Contains(this));
                         if (building.OwningPlayer.PlayerController)
                             building.OwningPlayer.PlayerController.NotifyResumeBuilding(this);
                         buildStatus = Status.QueuedOrBuilding;
@@ -98,7 +98,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
                     }
 
                     case Status.OnHold: {
-                        Debug.Assert(building.ConstructionQueue.TryPeek(out var item) && item == this, "Only the currently active construction queue item can be put on hold");
+                        Debug.Assert(building.ConstructionQueue.Contains(this));
                         if (building.OwningPlayer.PlayerController)
                             building.OwningPlayer.PlayerController.NotifyPutOnHold(this);
                         buildStatus = Status.OnHold;
@@ -106,8 +106,8 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
                     }
 
                     case Status.Cancelled: {
-                        Debug.Assert(building.ConstructionQueue.Contains(this), "Only construction queue items that are on hold can be cancelled");
-                        building.constructionQueue.Dequeue();
+                        Debug.Assert(building.ConstructionQueue.Contains(this));
+                        building.constructionQueue.Remove(this);
                         if (building.OwningPlayer.PlayerController)
                             building.OwningPlayer.PlayerController.NotifyCancelled(this);
                         buildStatus = Status.Cancelled;
@@ -130,7 +130,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     [SerializeField] private bool isFullyBuilt = true;
     [SerializeField] private bool canEverBeSelected = true;
     [SerializeField] private List<ConstructionOption> constructionOptions = new();
-    private readonly Queue<ConstructionQueueItem> constructionQueue = new();
+    private readonly List<ConstructionQueueItem> constructionQueue = new();
 
     private float health = 1;
     private float? lastDamageTime;
@@ -142,7 +142,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     private Color? playerColor;
 
     public BoxCollider BoxCollider => boxCollider;
-    public Queue<ConstructionQueueItem> ConstructionQueue => constructionQueue;
+    public List<ConstructionQueueItem> ConstructionQueue => constructionQueue;
 
     public IReadOnlyList<ConstructionOption> ConstructionOptions {
         get {
@@ -276,28 +276,32 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     public ConstructionQueueItem StartBuilding(ConstructionOption constructionOption) {
         Debug.Assert(constructionOption.MeetsPrerequisites(owningPlayer));
         var itemInConstruction = new ConstructionQueueItem(this, constructionOption);
-        constructionQueue.Enqueue(itemInConstruction);
+        constructionQueue.Add(itemInConstruction);
         if (owningPlayer.PlayerController)
             owningPlayer.PlayerController.NotifyStartBuilding(this, constructionOption);
         return itemInConstruction;
     }
 
     private void Update() {
-        if (constructionQueue.TryPeek(out var constructionQueueItem) && constructionQueueItem.BuildStatus == ConstructionQueueItem.Status.QueuedOrBuilding) {
+        if (constructionQueue.Count > 0) {
+            var constructionQueueItem = constructionQueue[0];
 
-            constructionQueueItem.timeElapsed += Time.deltaTime;
+            if (constructionQueueItem.BuildStatus == ConstructionQueueItem.Status.QueuedOrBuilding) {
 
-            if (constructionQueueItem.timeElapsed >= constructionQueueItem.ConstructionOption.BuildTime && constructionQueueItem.BuildStatus != ConstructionQueueItem.Status.ConstructionComplete) {
-                constructionQueueItem.BuildStatus = ConstructionQueueItem.Status.ConstructionComplete;
-                    
-                if (owningPlayer.PlayerController)
-                    owningPlayer.PlayerController.NotifyConstructionComplete(this, constructionQueueItem.ConstructionOption.Prefab);
+                constructionQueueItem.timeElapsed += Time.deltaTime;
 
-                if (constructionQueueItem.ConstructionOption.Prefab is Unit) {
-                    constructionQueue.Dequeue();
-                    constructionQueueItem.isValid = false;
+                if (constructionQueueItem.timeElapsed >= constructionQueueItem.ConstructionOption.BuildTime && constructionQueueItem.BuildStatus != ConstructionQueueItem.Status.ConstructionComplete) {
+                    constructionQueueItem.BuildStatus = ConstructionQueueItem.Status.ConstructionComplete;
+
+                    if (owningPlayer.PlayerController)
+                        owningPlayer.PlayerController.NotifyConstructionComplete(this, constructionQueueItem.ConstructionOption.Prefab);
+
+                    if (constructionQueueItem.ConstructionOption.Prefab is Unit) {
+                        constructionQueue.Remove(constructionQueueItem);
+                        constructionQueueItem.isValid = false;
+                    }
+                    else if (constructionQueueItem.ConstructionOption.Prefab is Building) { }
                 }
-                else if (constructionQueueItem.ConstructionOption.Prefab is Building) { }
             }
         }
     }

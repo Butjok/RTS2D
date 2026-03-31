@@ -91,6 +91,8 @@ public class AudioSystem : WorldBehaviour {
     }
 
     public void SayAnnouncerVoiceLine(AudioClip voiceLineClip) {
+        if (announcerAudioSource.isPlaying)
+            announcerAudioSource.Stop();
         announcerAudioSource.PlayOneShot(voiceLineClip);
     }
 
