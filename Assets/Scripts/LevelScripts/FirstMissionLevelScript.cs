@@ -7,7 +7,7 @@ public class FirstMissionLevelScript : LevelScriptBase {
     [SerializeField] private DialogueBase introDialogue;
     private bool playedIntroDialogue;
 
-    public override IEnumerator RequestAnimation() {
+    protected override IEnumerator RequestAnimation() {
         if (!playedIntroDialogue && !skipIntroDialogue) {
             playedIntroDialogue = true;
             return DialogueAnimation(introDialogue);

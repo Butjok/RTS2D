@@ -1,17 +1,6 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PrePlacedInfo : MonoBehaviour {
-
-    private static readonly List<Color> inEditorPreviewPlayerColors = new() {
-        Color.red,
-        Color.blue,
-        Color.green,
-        Color.yellow,
-        Color.cyan,
-        Color.magenta,
-        Color.gray
-    };
 
     [SerializeField] private World world;
     [SerializeField] private WorldBehaviour target;
@@ -30,18 +19,23 @@ public class PrePlacedInfo : MonoBehaviour {
             foreach (var player in World.Players)
                 if (player.Id == playerId)
                     return player;
-            return null;
+            throw new System.Exception($"No player with id {playerId} found in world");
         }
     }
 
     public void UpdateInEditorPlayerColor() {
-        if (playerId < 0 || playerId >= inEditorPreviewPlayerColors.Count)
-            return;
-        var playerColor = inEditorPreviewPlayerColors[playerId];
-        if (target is Unit unit)
-            unit.PlayerColor = playerColor;
-        else if (target is Building building)
-            building.PlayerColor = playerColor;
+        Color? playerColor = null;
+        foreach (var playerSpawnInfo in world.PlayerSpawnInfos)
+            if (playerSpawnInfo.Id == playerId) {
+                playerColor = playerSpawnInfo.Color;
+                break;
+            }
+        if (playerColor is {} actualPlayerColor) {
+            if (target is Unit unit)
+                unit.PlayerColor = actualPlayerColor;
+            else if (target is Building building)
+                building.PlayerColor = actualPlayerColor;
+        }
     }
     private void OnValidate() {
         UpdateInEditorPlayerColor();

@@ -8,7 +8,7 @@ using UnityEditor;
 public class Player : WorldBehaviour {
 
     public enum Kind {
-        Player,
+        Human,
         AI
     }
 
@@ -16,12 +16,13 @@ public class Player : WorldBehaviour {
     [SerializeField] private PlayerController playerController;
     [SerializeField] private Color color;
     [SerializeField] private float gold;
-    [SerializeField] private Kind kind = Kind.Player;
+    [SerializeField] private Kind kind = Kind.Human;
 
     private readonly Dictionary<Building, int> buildingsOfTypeCount = new();
     private readonly Dictionary<Building, Building> primaryBuildings = new();
 
     public int Id => id;
+    public bool IsHuman => kind == Kind.Human;
     public bool IsAi => kind == Kind.AI;
 
     public PlayerController PlayerController {

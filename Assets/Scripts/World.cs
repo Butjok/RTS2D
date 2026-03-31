@@ -1,13 +1,23 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 public class World : MonoBehaviour {
+
+    [Serializable]
+    public struct PlayerSpawnInfo {
+        [SerializeField] private int id;
+        [SerializeField] private Player.Kind kind;
+        [SerializeField] private Color color;
+        
+        public int Id => id;
+        public Player.Kind Kind => kind;
+        public Color Color => color;
+    }
+    
+    [SerializeField] private List<PlayerSpawnInfo> playerSpawnInfos = new();
+    private readonly  HashSet<int> usedPlayerIds = new();
     [SerializeField] private List<Player> players = new();
     [SerializeField] private PlayerController playerControllerPrefab;
     [SerializeField] private PlayerController playerController;
@@ -25,16 +35,13 @@ public class World : MonoBehaviour {
     [SerializeField] private GameplayStateMachine gameplayStateMachine;
 
     [SerializeField] private List<Unit> units = new();
-
     [SerializeField] private List<Building> buildings = new();
-    private readonly HashSet<Building> buildingsSet = new(); // is used for quick lookup in Contains(Building) method
-
     private readonly List<ISelectable> selectables = new();
-    private IEnumerator animationCoroutine;
 
     public event Action<Object> onObjectSpawned;
     public event Action<Object> onObjectDestroyed;
 
+    public IReadOnlyList<PlayerSpawnInfo> PlayerSpawnInfos => playerSpawnInfos;
     public IReadOnlyList<Player> Players => players;
     public RectTransform PlayerHUDContainer => playerHUDContainer;
     public BoxCollider WorldBounds => worldBounds;
@@ -57,17 +64,20 @@ public class World : MonoBehaviour {
 
         grid.Initialize();
 
-        var redPlayer = Spawn<Player>(player => {
-            player.Initialize(this, null, 0, Player.Kind.Player);
-            player.Color = Color.red;
-        });
-        players.Add(redPlayer);
-
-        var bluePlayer = Spawn<Player>(player => {
-            player.Initialize(this, null, 1, Player.Kind.AI);
-            player.Color = Color.blue;
-        });
-        players.Add(bluePlayer);
+        Player humanPlayer = null;
+        foreach (var playerSpawnInfo in playerSpawnInfos) {
+            Debug.Assert(!usedPlayerIds.Contains(playerSpawnInfo.Id));
+            usedPlayerIds.Add(playerSpawnInfo.Id);
+            var player = Spawn<Player>(player => {
+                player.Initialize(this, null, playerSpawnInfo.Id, playerSpawnInfo.Kind);
+                player.Color = playerSpawnInfo.Color;
+            });
+            players.Add(player);
+            if (player.IsHuman) {
+                Debug.Assert(!humanPlayer);
+                humanPlayer = player;
+            }
+        }
 
         var prePlacedInfos = FindObjectsByType<PrePlacedInfo>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (var prePlacedInfo in prePlacedInfos) {
@@ -79,7 +89,6 @@ public class World : MonoBehaviour {
 
             if (prePlacedInfo.Target is Building prePlacedBuilding) {
                 buildings.Add(prePlacedBuilding);
-                buildingsSet.Add(prePlacedBuilding);
                 grid.SetNotWalkable(prePlacedBuilding);
                 prePlacedBuilding.OwningPlayer.IncrementBuildingsCountOf(prePlacedBuilding.GetPrefab<Building>());
             }
@@ -91,13 +100,13 @@ public class World : MonoBehaviour {
 
         damageStats.EnsureTablesArePrecached();
         
-        if (playerControllerPrefab) {
+        if (humanPlayer && playerControllerPrefab) {
             playerController = Spawn(playerControllerPrefab, playerController => {
-                playerController.Initialize(this, playerControllerPrefab, redPlayer);
+                playerController.Initialize(this, playerControllerPrefab, humanPlayer);
                 playerController.enabled = false;
                 worldCamera = playerController.PlayerCamera;
             });
-            redPlayer.PlayerController = playerController;
+            humanPlayer.PlayerController = playerController;
         }
     }
 
@@ -125,10 +134,8 @@ public class World : MonoBehaviour {
 
         if (instance is Unit unit)
             units.Add(unit);
-        if (instance is Building building && !building.IsGhost) {
+        if (instance is Building building && !building.IsGhost) 
             buildings.Add(building);
-            buildingsSet.Add(building);
-        }
         if (instance is ISelectable selectable && selectable.CanEverBeSelected)
             selectables.Add(selectable);
 
@@ -139,62 +146,23 @@ public class World : MonoBehaviour {
     }
 
     public void Destroy(WorldBehaviour obj) {
+        
         onObjectDestroyed?.Invoke(obj);
-
-        Player buildingOwner = null;
 
         if (obj is Unit unit)
             units.Remove(unit);
-        if (obj is Building building) {
+        if (obj is Building building) 
             buildings.Remove(building);
-            buildingsSet.Remove(building);
-            buildingOwner = building.OwningPlayer;
-        }
         if (obj is ISelectable selectable)
             selectables.Remove(selectable);
 
         Object.Destroy(obj.gameObject);
-
-        if (buildingOwner) {
-            
-            // check if player has any building left
-            var hasAnyBuildingLeft = false;
-            foreach (var building2 in buildings)
-                if (building2.OwningPlayer == buildingOwner) {
-                    hasAnyBuildingLeft = true;
-                    break;
-                }
-
-            if (!hasAnyBuildingLeft) {
-                playerController.enabled = false;
-
-                var isVictory = buildingOwner.IsAi;
-                var animationCoroutine = MatchEndAnimationCoroutine(isVictory);
-                StartCoroutine(animationCoroutine);
-            }
-        }
     }
 
-    public bool Contains(Building building) {
-        return buildingsSet.Contains(building);
-    }
-
-    private IEnumerator MatchEndAnimationCoroutine(bool isVictory) {
-        yield return levelScript.MatchEndAnimation(isVictory);
-#if UNITY_EDITOR
-        EditorApplication.ExitPlaymode();
-#else
-        Application.Quit();
-#endif
-    }
-
-    private void Update() {
-        if (animationCoroutine != null) {
-            if (!animationCoroutine.MoveNext())
-                animationCoroutine = null;
-        }
-        if (animationCoroutine == null)
-            animationCoroutine = levelScript.RequestAnimation();
+    private void OnValidate() {
+        var prePlacedInfos = FindObjectsByType<PrePlacedInfo>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (var prePlacedInfo in prePlacedInfos) 
+            prePlacedInfo.UpdateInEditorPlayerColor();
     }
 }
 

@@ -1,8 +1,14 @@
 using System.Collections;
 using UnityEngine;
+using Object = UnityEngine.Object;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class LevelScriptBase : WorldBehaviour {
+
     private bool playedMatchStartAnimation;
+    private IEnumerator animationCoroutine;
 
     public IEnumerator MatchEndAnimation(bool isVictory) {
         World.PlayerController.enabled = false;
@@ -11,16 +17,21 @@ public class LevelScriptBase : WorldBehaviour {
             World.PlayerController.PlayerHUD.ShowVictoryScreen();
         else
             World.PlayerController.PlayerHUD.ShowDefeatScreen();
-        
+
         while (!Input.GetKeyDown(KeyCode.Space))
             yield return null;
-        yield return null; // consume key press
+
+#if UNITY_EDITOR
+        EditorApplication.ExitPlaymode();
+#else
+        Application.Quit();
+#endif
     }
 
     protected IEnumerator DialogueAnimation(DialogueBase dialogue) {
-        
+
         World.DialogueUI.Show();
-        
+
         foreach (var command in dialogue.Commands)
             switch (command.CommandType) {
 
@@ -38,14 +49,14 @@ public class LevelScriptBase : WorldBehaviour {
 
                     if (!World.DialogueUI.IsTypingCompleted) {
                         World.DialogueUI.InterruptTyping();
-                        
+
                         while (!Input.GetKeyDown(KeyCode.Space))
                             yield return null;
                         yield return null; // consume key press
                     }
                     break;
             }
-        
+
         World.DialogueUI.Hide();
     }
 
@@ -55,11 +66,49 @@ public class LevelScriptBase : WorldBehaviour {
         yield break;
     }
 
-    public virtual IEnumerator RequestAnimation() {
+    protected virtual IEnumerator RequestAnimation() {
         if (!playedMatchStartAnimation) {
             playedMatchStartAnimation = true;
             return MatchStartAnimation();
         }
         return null;
+    }
+
+    private void Awake() {
+        World.onObjectDestroyed += OnBuildingDestroyed;
+    }
+
+    private void OnDestroy() {
+        World.onObjectDestroyed -= OnBuildingDestroyed;
+    }
+
+    private void OnBuildingDestroyed(Object obj) {
+        if (obj is Building building) {
+            var buildingOwner = building.OwningPlayer;
+
+            // check if player has any building left
+            var hasAnyBuildingsLeft = false;
+            foreach (var otherBuilding in World.Buildings)
+                if (building != otherBuilding && otherBuilding.OwningPlayer == buildingOwner) {
+                    hasAnyBuildingsLeft = true;
+                    break;
+                }
+
+            if (!hasAnyBuildingsLeft) {
+                World.PlayerController.enabled = false;
+
+                var isVictory = buildingOwner.IsAi;
+                animationCoroutine = MatchEndAnimation(isVictory);
+            }
+        }
+    }
+
+    private void Update() {
+        if (animationCoroutine != null) {
+            if (!animationCoroutine.MoveNext())
+                animationCoroutine = null;
+        }
+        if (animationCoroutine == null)
+            animationCoroutine = RequestAnimation();
     }
 }
