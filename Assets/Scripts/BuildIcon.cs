@@ -52,13 +52,9 @@ public class BuildIcon : Image, IPointerClickHandler {
     }
 
     private void Update() {
-        if (constructionQueueItem != null) {
-            if (!constructionQueueItem.isValid)
-                constructionQueueItem = null;
-            else {
-                if (constructionQueueItem.BuildStatus == Building.ConstructionQueueItem.Status.QueuedOrBuilding)
-                    Progress = constructionQueueItem.Progress;
-            }
+        if (constructionQueueItem) {
+            if (constructionQueueItem.BuildStatus == Building.ConstructionQueueItem.Status.QueuedOrBuilding)
+                Progress = constructionQueueItem.Progress;
         }
     }
 
@@ -103,16 +99,18 @@ public class BuildIcon : Image, IPointerClickHandler {
 
     public void OnPointerClick(PointerEventData eventData) {
         if (eventData.button == PointerEventData.InputButton.Left) {
-            if (constructionQueueItem == null) {
+            if (!constructionQueueItem) {
                 var primaryBuilding = owningHUD.PlayerController.Player.GetPrimaryBuilding(constructionOption.SourceBuildingType);
                 Debug.Assert(primaryBuilding);
                 constructionQueueItem = primaryBuilding.StartBuilding(constructionOption);
             }
             else if (constructionQueueItem.BuildStatus == Building.ConstructionQueueItem.Status.OnHold)
                 constructionQueueItem.BuildStatus = Building.ConstructionQueueItem.Status.QueuedOrBuilding;
+            else if (constructionQueueItem.BuildStatus == Building.ConstructionQueueItem.Status.ConstructionComplete && constructionQueueItem.ConstructionOption.Prefab is Building buildingPrefab) 
+                owningHUD.PlayerController.StartBuildingPlacement(buildingPrefab);
         }
         else if (eventData.button == PointerEventData.InputButton.Right) {
-            if (constructionQueueItem != null) {
+            if (constructionQueueItem) {
                 if (constructionQueueItem.BuildStatus == Building.ConstructionQueueItem.Status.QueuedOrBuilding)
                     constructionQueueItem.BuildStatus = Building.ConstructionQueueItem.Status.OnHold;
                 else if (constructionQueueItem.BuildStatus == Building.ConstructionQueueItem.Status.OnHold) {

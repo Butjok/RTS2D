@@ -24,4 +24,9 @@ public class RefineryBuilding : Building {
     public void AddGold(float amount) {
         OwningPlayer.AddGold(this, amount);
     }
+
+    protected override void OnBuilt() {
+        // TODO: spawn harvester unit
+        base.OnBuilt();
+    }
 }

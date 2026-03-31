@@ -116,6 +116,8 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
                 }
             }
         }
+
+        public static implicit operator bool(ConstructionQueueItem item) => item != null && item.isValid;
     }
 
     private static readonly int shader_playerColor = Shader.PropertyToID("_PlayerColor");
@@ -153,15 +155,33 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
         }
     }
 
-    public void Initialize(World world, Building prefab, Player owningPlayer, bool isPrimaryBuilding) {
+    public void Initialize(World world, Building prefab, Player owningPlayer, bool isPrimaryBuilding, bool isGhost) {
         base.Initialize(world, prefab);
         OwningPlayer = owningPlayer;
         if (isPrimaryBuilding)
             OwningPlayer.SetPrimaryBuilding(this);
+        if (isGhost) {
+            IsGhost = true;
+            if (boxCollider)
+                boxCollider.enabled = false;
+            foreach (var renderer in renderers)
+                renderer.SetSharedMaterials(sharedGhostMaterials);
+            canEverBeSelected = false;
+        }
     }
 
     public void InitializeFromPrePlacedInfo(PrePlacedInfo info) {
-        Initialize(info.World, (Building)info.Prefab, info.Player, info.IsPrimaryBuilding);
+        Initialize(info.World, (Building)info.Prefab, info.Player, info.IsPrimaryBuilding, false);
+    }
+
+    private void Awake() {
+        if (!IsGhost && owningPlayer.GetPrimaryBuilding(GetPrefab<Building>()) == null)
+            owningPlayer.SetPrimaryBuilding(this);
+    }
+
+    private void OnDestroy() {
+        if (!IsGhost && owningPlayer)
+            owningPlayer.RemovePrimaryBuilding(this);
     }
 
     public Color PlayerColor {
@@ -228,14 +248,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     // Ghost is a building visualization used when player is placing a building. It has different visuals and doesn't have a collider.
     public bool IsGhost { get; private set; }
 
-    public void SetUpAsGhost() {
-        IsGhost = true;
-        if (boxCollider)
-            boxCollider.enabled = false;
-        foreach (var renderer in renderers)
-            renderer.SetSharedMaterials(sharedGhostMaterials);
-        canEverBeSelected = false;
-    }
+    protected virtual void OnBuilt() { }
 
     private IEnumerator ConstructionAnimation() {
         var startScale = renderers[0].transform.localScale;
@@ -257,6 +270,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
         renderers[0].transform.localScale = startScale;
         renderers[0].transform.localPosition = startLocalPosition;
         isFullyBuilt = true;
+        OnBuilt();
     }
 
     private void Die() {
@@ -304,11 +318,6 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
                 }
             }
         }
-    }
-
-    private void OnDestroy() {
-        if (owningPlayer)
-            owningPlayer.RemovePrimaryBuilding(this);
     }
 
     public float? LastDamageTime => lastDamageTime;

@@ -61,12 +61,12 @@ public class Player : WorldBehaviour {
     }
 
     private void OnBuildingSpawned(Object obj) {
-        if (obj is Building building && building.OwningPlayer == this)
+        if (obj is Building building && building.OwningPlayer == this && !building.IsGhost)
             IncrementBuildingsCountOf(building.GetPrefab<Building>());
     }
 
     private void OnBuildingDestroyed(Object obj) {
-        if (obj is Building building && building.OwningPlayer == this)
+        if (obj is Building building && building.OwningPlayer == this && !building.IsGhost)
             DecrementBuildingsCountOf(building.GetPrefab<Building>());
     }
 

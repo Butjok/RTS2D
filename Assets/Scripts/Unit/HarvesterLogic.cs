@@ -27,6 +27,11 @@ public class HarvesterLogic : MonoBehaviour {
     private IEnumerator harvestingAnimationCoroutine;
     private IEnumerator unloadingAnimationCoroutine;
 
+    public RefineryBuilding HomeBase {
+        get => homeBase;
+        set => homeBase = value;
+    }
+
     private void Update() {
 
         if (!unit.CurrentOrder) {
