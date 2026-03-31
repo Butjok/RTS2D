@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 8922598970601361304}
   - component: {fileID: 7117083656586139402}
   - component: {fileID: 5998453436804908398}
-  - component: {fileID: 6581105631328051859}
   m_Layer: 10
   m_Name: Barrel
   m_TagString: Untagged
@@ -88,29 +87,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &6581105631328051859
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 72064193187368391}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5000001
-  m_Height: 2
-  m_Direction: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!1 &1616467520558958961
 GameObject:
   m_ObjectHideFlags: 0
@@ -169,8 +145,6 @@ MonoBehaviour:
   movement: {fileID: 2588247011638473206}
   owningPlayer: {fileID: 0}
   health: 1
-  cost: 1000
-  buildTime: 15
   radiusInFormation: 0.5
   renderers:
   - {fileID: 1483168665506808279}
@@ -196,10 +170,15 @@ MonoBehaviour:
   - {fileID: 8300000, guid: cd3f32c7c5cb541a98a1ea59362a80b9, type: 3}
   deathScreams: []
   currentOrder:
+    source: {fileID: 0}
+    kind: 0
+    moveDestination: {x: 0, y: 0}
     targetUnit: {fileID: 0}
     targetBuilding: {fileID: 0}
+    creationTime: 0
   kind: 1
   effectsAudioSource: {fileID: 3436219795647450287}
+  orderSource: {fileID: 0}
 --- !u!114 &2588247011638473206
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -645,7 +624,6 @@ GameObject:
   - component: {fileID: 2417167683978420997}
   - component: {fileID: 1995216079049900060}
   - component: {fileID: 1483168665506808279}
-  - component: {fileID: 1287243764301622629}
   m_Layer: 10
   m_Name: Hull
   m_TagString: Untagged
@@ -722,27 +700,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &1287243764301622629
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4796038658979325212}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &4946893661045573288
 GameObject:
   m_ObjectHideFlags: 0
@@ -785,7 +742,6 @@ GameObject:
   - component: {fileID: 95177331063239617}
   - component: {fileID: 2738248440700644582}
   - component: {fileID: 9107090357287418331}
-  - component: {fileID: 1482944863987186071}
   m_Layer: 10
   m_Name: Turret
   m_TagString: Untagged
@@ -862,27 +818,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &1482944863987186071
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5135267407473097768}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &5413717381579473937
 GameObject:
   m_ObjectHideFlags: 0

@@ -403,7 +403,6 @@ GameObject:
   - component: {fileID: 2417167683978420997}
   - component: {fileID: 1995216079049900060}
   - component: {fileID: 1483168665506808279}
-  - component: {fileID: 1287243764301622629}
   m_Layer: 0
   m_Name: Hull
   m_TagString: Untagged
@@ -479,27 +478,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &1287243764301622629
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4796038658979325212}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &5135267407473097768
 GameObject:
   m_ObjectHideFlags: 0
@@ -511,7 +489,6 @@ GameObject:
   - component: {fileID: 95177331063239617}
   - component: {fileID: 2738248440700644582}
   - component: {fileID: 9107090357287418331}
-  - component: {fileID: 1482944863987186071}
   m_Layer: 0
   m_Name: Scoop
   m_TagString: Untagged
@@ -587,27 +564,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!65 &1482944863987186071
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5135267407473097768}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &5413717381579473937
 GameObject:
   m_ObjectHideFlags: 0

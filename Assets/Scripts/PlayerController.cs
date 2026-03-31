@@ -81,7 +81,7 @@ public class PlayerController : WorldBehaviour {
 
     private readonly HashSet<Building.ConstructionOption> constructionOptions = new();
     private readonly HashSet<Building.ConstructionOption> oldConstructionOptions = new();
-    
+
     public IReadOnlyList<ISelectable> SelectedEntities => selectedEntities;
 
     public void Initialize(World world, PlayerController prefab, Player player) {
@@ -284,8 +284,13 @@ public class PlayerController : WorldBehaviour {
                             unit.SetOrder(UnitOrder.Attack(this, targetUnit, destination));
                         else if (targetBuilding && unit.CanAttack(targetBuilding))
                             unit.SetOrder(UnitOrder.Attack(this, targetBuilding, destination));
-                        else if (World.Grid[destinationCell].HasGold && unit.GetComponent<HarvesterLogic>())
-                            unit.SetOrder(UnitOrder.Harvest(this, destination));
+                        else if (unit.GetComponent<HarvesterLogic>()) {
+                            var targetRefinery = targetBuilding ? targetBuilding.GetComponent<RefineryBuilding>() : null;
+                            if (World.Grid[destinationCell].HasGold)
+                                unit.SetOrder(UnitOrder.Harvest(this, destination));
+                            else if (targetRefinery && targetRefinery.OwningPlayer == unit.OwningPlayer)
+                                unit.SetOrder(UnitOrder.Unload(this, targetRefinery));
+                        }
                         else
                             unit.SetOrder(UnitOrder.Move(this, destination));
                     }
