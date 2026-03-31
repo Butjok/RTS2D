@@ -18,7 +18,6 @@ public class PlayerController : WorldBehaviour {
     private readonly List<ISelectable> selectedEntities = new();
     private readonly HashSet<ISelectable> oldSelectedEntitiesSet = new();
     private readonly HashSet<ISelectable> selectedEntitiesSet = new();
-    private readonly List<Unit> selectedUnits = new();
 
     private Dictionary<Unit, Vector2> formationPositions = new();
 
@@ -66,6 +65,8 @@ public class PlayerController : WorldBehaviour {
 
     private readonly HashSet<Building.ConstructionOption> constructionOptions = new();
     private readonly HashSet<Building.ConstructionOption> oldConstructionOptions = new();
+    
+    public IReadOnlyList<ISelectable> SelectedEntities => selectedEntities;
 
     public void Initialize(World world, PlayerController prefab, Player player) {
         base.Initialize(world, prefab);
@@ -123,16 +124,32 @@ public class PlayerController : WorldBehaviour {
         }
     }
 
-    private static Unit FindLoudestUnit(IReadOnlyCollection<Unit> units) {
+    private Unit FindLoudestUnitWhichCanReceiveOrder(IEnumerable<Unit> units) {
         Unit loudestUnit = null;
         var maxVoicePriority = int.MinValue;
         foreach (var unit in units) {
-            if (unit.VoicePriority > maxVoicePriority) {
+            if (unit.CanReceiveOrderFrom(this) && unit.VoicePriority > maxVoicePriority) {
                 maxVoicePriority = unit.VoicePriority;
                 loudestUnit = unit;
             }
         }
         return loudestUnit;
+    }
+
+    private void UpdateSelectionFlags() {
+        foreach (var selectable in selectedEntities)
+            if (selectable.ObjectExists && !oldSelectedEntitiesSet.Contains(selectable))
+                selectable.IsSelected = true;
+
+        selectedEntitiesSet.Clear();
+        selectedEntitiesSet.UnionWith(selectedEntities);
+
+        foreach (var selectable in oldSelectedEntitiesSet)
+            if (selectable.ObjectExists && !selectedEntitiesSet.Contains(selectable))
+                selectable.IsSelected = false;
+
+        oldSelectedEntitiesSet.Clear();
+        oldSelectedEntitiesSet.UnionWith(selectedEntitiesSet);
     }
 
     private void Update() {
@@ -182,6 +199,7 @@ public class PlayerController : WorldBehaviour {
                 Building closestBuilding = null;
                 var closestDistanceSquared = float.MaxValue;
                 foreach (var selectable in World.Selectables) {
+
                     var onScreenBounds = PlayerHUD.GetOnScreenBounds(selectable.SelectionBounds, playerCamera);
                     var onScreenCenter = onScreenBounds.center;
                     var marqueeMin = Vector2.Min(marqueeStart.Value, marqueeEnd);
@@ -205,30 +223,17 @@ public class PlayerController : WorldBehaviour {
                 if (shouldSelectSingleEntity)
                     selectedEntities.RemoveAll(e => e != (object)closestUnit && e != (object)closestBuilding);
 
-                foreach (var selectable in selectedEntities)
-                    if (selectable.ObjectExists && !oldSelectedEntitiesSet.Contains(selectable))
-                        selectable.IsSelected = true;
-
-                selectedEntitiesSet.Clear();
-                selectedEntitiesSet.UnionWith(selectedEntities);
-
-                foreach (var selectable in oldSelectedEntitiesSet)
-                    if (selectable.ObjectExists && !selectedEntitiesSet.Contains(selectable))
-                        selectable.IsSelected = false;
-
-                oldSelectedEntitiesSet.Clear();
-                oldSelectedEntitiesSet.UnionWith(selectedEntitiesSet);
+                UpdateSelectionFlags();
             }
 
             else if (Input.GetMouseButtonUp(MouseButton.left)) {
                 marqueeStart = null;
                 marqueeEnd = Vector2.zero;
 
-                selectedUnits.Clear();
-                selectedUnits.AddRange(selectedEntities.OfType<Unit>());
-                if (selectedUnits.Count > 0) {
-                    var loudestUnit = FindLoudestUnit(selectedUnits);
-                    World.AudioSystem.SayRandomVoiceLine(loudestUnit, loudestUnit.OnSelectedVoiceLines);
+                if (selectedEntities.OfType<Unit>().Any()) {
+                    var loudestUnit = FindLoudestUnitWhichCanReceiveOrder(selectedEntities.OfType<Unit>());
+                    if (loudestUnit)
+                        World.AudioSystem.SayRandomVoiceLine(loudestUnit, loudestUnit.OnSelectedVoiceLines);
                 }
             }
         }
@@ -236,15 +241,13 @@ public class PlayerController : WorldBehaviour {
         if (enableUnitOrders) {
             if (Input.GetMouseButtonDown(MouseButton.right) && selectedEntities.Count > 0) {
                 if (TryTraceRay(Input.mousePosition, out var hitInfo, ~ignoreRaycastMask)) {
-                    selectedUnits.Clear();
-                    selectedUnits.AddRange(selectedEntities.OfType<Unit>());
 
                     var targetPosition = hitInfo.point.ToVector2();
                     var targetBuilding = hitInfo.collider.GetComponent<Building>();
                     var targetUnit = hitInfo.collider.GetComponent<Unit>();
 
                     formationPositions.Clear();
-                    foreach (var unit in selectedUnits)
+                    foreach (var unit in selectedEntities.OfType<Unit>())
                         formationPositions[unit] = Vector2.zero;
                     UnitFormation.FormAround(targetPosition, formationPositions);
 
@@ -253,7 +256,11 @@ public class PlayerController : WorldBehaviour {
                     if (targetUnit && targetBuilding)
                         targetBuilding = null;
 
-                    foreach (var unit in selectedUnits) {
+                    selectedEntities.RemoveAll(unit => !unit.CanReceiveOrderFrom(this));
+                    UpdateSelectionFlags();
+
+                    foreach (var unit in selectedEntities.OfType<Unit>()) {
+
                         var destination = formationPositions[unit];
                         var destinationCell = World.Grid.WorldPositionToCell(destination);
 
@@ -267,14 +274,15 @@ public class PlayerController : WorldBehaviour {
                             unit.SetOrder(UnitOrder.Move(this, destination));
                     }
 
-                    if (selectedUnits.Count > 0) {
+                    if (selectedEntities.OfType<Unit>().Any()) {
                         var isAttackOrder = (bool)targetBuilding;
-                        var loudestUnit = FindLoudestUnit(selectedUnits);
-                        World.AudioSystem.SayRandomVoiceLine(loudestUnit, isAttackOrder ? loudestUnit.OnAttackOrderVoiceLines : loudestUnit.OnMoveOrderVoiceLines);
+                        var loudestUnit = FindLoudestUnitWhichCanReceiveOrder(selectedEntities.OfType<Unit>());
+                        if (loudestUnit)
+                            World.AudioSystem.SayRandomVoiceLine(loudestUnit, isAttackOrder ? loudestUnit.OnAttackOrderVoiceLines : loudestUnit.OnMoveOrderVoiceLines);
                     }
                 }
                 else
-                    foreach (var unit in selectedUnits)
+                    foreach (var unit in selectedEntities.OfType<Unit>())
                         unit.CancelOrder();
             }
         }
@@ -380,10 +388,11 @@ public class PlayerController : WorldBehaviour {
     public void NotifyNewConstructionOptions() {
         World.AudioSystem.SayAnnouncerVoiceLine(announcer_newConstructionOptions);
     }
-    
+
     public void NotifyBattleControlActivated() {
         World.AudioSystem.SayAnnouncerVoiceLine(announcer_battleControlActivated);
     }
+
     public void NotifyBattleControlTerminated() {
         World.AudioSystem.SayAnnouncerVoiceLine(announcer_battleControlTerminated);
     }

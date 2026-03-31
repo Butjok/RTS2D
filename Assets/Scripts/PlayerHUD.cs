@@ -134,7 +134,7 @@ public class PlayerHUD : WorldBehaviour {
         }
 
         foreach (var selectable in World.Selectables)
-            if (selectable is IHasHealth health && (selectable.IsSelected || health.LastDamageTime.HasValue && Time.time - health.LastDamageTime.Value <= 5)) {
+            if (selectable != null && selectable.ObjectExists && selectable is IHasHealth health && (selectable.IsSelected || health.LastDamageTime.HasValue && Time.time - health.LastDamageTime.Value <= 5)) {
                 var onScreenBounds = GetOnScreenBounds(selectable.SelectionBounds, playerController.PlayerCamera);
                 var healthBarRectangle = ToGUICoordinates(new Rect(
                     onScreenBounds.xMin, onScreenBounds.yMin - unitHealthBarHeight,

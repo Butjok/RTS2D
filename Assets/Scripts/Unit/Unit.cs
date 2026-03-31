@@ -15,6 +15,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, ICan
     [SerializeField] private Player owningPlayer;
 
     [SerializeField] private float health = 1;
+    private bool isSelected = false;
     [SerializeField] private float radiusInFormation = .5f;
 
     [SerializeField] private List<Renderer> renderers = new();
@@ -54,9 +55,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, ICan
             return renderers[0].bounds;
         }
     }
-
-    private bool isSelected = false;
-
+    
     public bool IsSelected {
         get => isSelected;
         set {
@@ -156,6 +155,10 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, ICan
     }
 
     public bool ObjectExists => this;
+    
+    public bool CanReceiveOrderFrom(PlayerController playerController) {
+        return playerController && playerController.Player == owningPlayer;
+    }
 
     private void CancelOrderIfTargetIsDestroyed(Object obj) {
         if (currentOrder && (obj == currentOrder.TargetUnit || obj == currentOrder.TargetBuilding))

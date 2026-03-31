@@ -153,6 +153,10 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
 
     public Bounds SelectionBounds => renderers[0].bounds;
 
+    public bool CanBeSelectedBy(PlayerController playerController) {
+        return playerController && playerController.Player == owningPlayer;
+    }
+
     public bool IsSelected { get; set; } = false;
     public bool CanEverBeSelected => canEverBeSelected;
 
@@ -245,4 +249,8 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     }
 
     public float? LastDamageTime => lastDamageTime;
+    
+    public bool CanReceiveOrderFrom(PlayerController playerController) {
+        return playerController && playerController.Player == owningPlayer;
+    }
 }

@@ -5,4 +5,5 @@ public interface ISelectable {
     public bool IsSelected { get; set; }
     public bool CanEverBeSelected => true;
     public bool ObjectExists { get; }
+    public bool CanReceiveOrderFrom(PlayerController playerController);
 }
