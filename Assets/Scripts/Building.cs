@@ -265,9 +265,9 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
 
     public Vector3 PositionToBeAttackedAt => renderers[0].bounds.center;
 
-    public void ReceiveAttackFrom(Unit attacker) {
+    public void ReceiveAttackFrom(Unit attackerType) {
         lastDamageTime = Time.time;
-        var damage = World.DamageStats.GetDamage(attacker.GetPrefab<Unit>(), GetPrefab<Building>());
+        var damage = World.DamageStats.GetDamage(attackerType, GetPrefab<Building>());
         Health -= damage;
     }
 

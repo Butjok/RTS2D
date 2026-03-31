@@ -57,7 +57,7 @@ MonoBehaviour:
   enableBuildingPlacement: 1
   spawnedUnitsCount: 0
   showMovePathCells: 0
-  announcer_battleControlActivated: {fileID: 8300000, guid: e01aaa2c362703944a8d8c9f2d02cfe5, type: 3}
+  announcer_battleControlActivated: {fileID: 8300000, guid: 189a643ed07c744cca97d9da26a47fdf, type: 3}
   announcer_battleControlTerminated: {fileID: 8300000, guid: 724a32ee472816a45980b00ee85717fa, type: 3}
   announcer_building: {fileID: 8300000, guid: 196db0199897240788bf8b1e4ae0e1b4, type: 3}
   announcer_constructionComplete: {fileID: 8300000, guid: 0d75cc3d570104c2aadbdc1f367b43eb, type: 3}

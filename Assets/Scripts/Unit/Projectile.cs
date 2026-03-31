@@ -17,31 +17,36 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-[RequireComponent( typeof(AudioSource))]
+[RequireComponent(typeof(AudioSource))]
 public class Projectile : WorldBehaviour {
-    
+
     private const int maxDamagedColliders = 10;
-    
-    [SerializeField] private Unit owningUnit;
-    [FormerlySerializedAs("renderer")] [SerializeField] private Renderer projectileRenderer;
+
+    [SerializeField] private Player owningPlayer;
+    [SerializeField] private Unit owningUnitType;
+
+    [FormerlySerializedAs("renderer")] [SerializeField]
+    private Renderer projectileRenderer;
+
     [SerializeField] private Vector3 target;
     [SerializeField] private float speed = 3;
     [SerializeField] private float explosionRadius = 1;
     [SerializeField] private AudioSource audioSource;
-    [SerializeField] private  Collider[] damagedColliders = new Collider[maxDamagedColliders];
+    [SerializeField] private Collider[] damagedColliders = new Collider[maxDamagedColliders];
     private readonly HashSet<Unit> damagedUnits = new();
     private readonly HashSet<Building> damagedBuilding = new();
 
     public void Initialize(World world, Projectile prefab, Unit owningUnit, Vector3 target) {
         base.Initialize(world, prefab);
-        this.owningUnit = owningUnit;
+        owningUnitType = owningUnit.GetPrefab<Unit>();
+        owningPlayer = owningUnit.OwningPlayer;
         this.target = target;
     }
-    
+
     private void OnValidate() {
-        if (!projectileRenderer )
+        if (!projectileRenderer)
             projectileRenderer = GetComponent<Renderer>();
-        if (!audioSource )
+        if (!audioSource)
             audioSource = GetComponent<AudioSource>();
     }
 
@@ -61,21 +66,21 @@ public class Projectile : WorldBehaviour {
         enabled = false;
         projectileRenderer.enabled = false;
         audioSource.Play();
-        
+
         var clipLength = audioSource.clip ? audioSource.clip.length : 0;
         StartCoroutine(DelayedDestruction(clipLength));
-        
-        var count =  Physics.OverlapSphereNonAlloc(transform.position, explosionRadius, damagedColliders);
-        for  (var i = 0; i < count; i++) {
+
+        var count = Physics.OverlapSphereNonAlloc(transform.position, explosionRadius, damagedColliders);
+        for (var i = 0; i < count; i++) {
             var unit = damagedColliders[i].GetComponent<Unit>();
-            if (unit && !damagedUnits.Contains(unit)) {
+            if (unit && !damagedUnits.Contains(unit) && unit.OwningPlayer != owningPlayer) {
                 damagedUnits.Add(unit);
-                unit.ReceiveAttackFrom(owningUnit);
+                unit.ReceiveAttackFrom(owningUnitType);
             }
             var building = damagedColliders[i].GetComponent<Building>();
-            if (building && !damagedBuilding.Contains(building)) {
+            if (building && !damagedBuilding.Contains(building) && building.OwningPlayer != owningPlayer) {
                 damagedBuilding.Add(building);
-                building.ReceiveAttackFrom(owningUnit);
+                building.ReceiveAttackFrom(owningUnitType);
             }
         }
     }

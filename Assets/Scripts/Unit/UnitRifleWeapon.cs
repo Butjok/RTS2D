@@ -40,7 +40,7 @@ public class UnitRifleWeapon : UnitWeapon {
     protected override IEnumerator AttackAnimation_Internal(IAttackTarget target) {
         if (target.ObjectExists) {
 
-            target.ReceiveAttackFrom(OwningUnit);
+            target.ReceiveAttackFrom(OwningUnit.GetPrefab<Unit>());
 
             for (var i = 0; i < burstCount; i++) {
 

@@ -162,9 +162,9 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, ICan
 
     public Vector3 PositionToBeAttackedAt => transform.position;
 
-    public void ReceiveAttackFrom(Unit attacker) {
+    public void ReceiveAttackFrom(Unit attackerType) {
         lastDamageTime = Time.time;
-        var damage = World.DamageStats.GetDamage(attacker.GetPrefab<Unit>(), GetPrefab<Unit>());
+        var damage = World.DamageStats.GetDamage(attackerType, GetPrefab<Unit>());
         Health -= damage;
     }
 

@@ -70,6 +70,10 @@ public class DamageStats : ScriptableObject {
         foreach (var pair in unitUnitPairs) {
             var key = (pair.AttackerPrefab, pair.TargetPrefab);
             Debug.Assert(!unitUnitDamageDict.ContainsKey(key), $"Duplicate damage entry for attacker {pair.AttackerPrefab.name} and target {pair.TargetPrefab.name}");
+#if UNITY_EDITOR
+            Debug.Assert(PrefabUtility.IsPartOfPrefabAsset(pair.AttackerPrefab), $"Attacker {pair.AttackerPrefab.name} is not a prefab asset");
+            Debug.Assert(PrefabUtility.IsPartOfPrefabAsset(pair.TargetPrefab), $"Target {pair.TargetPrefab.name} is not a prefab asset");
+#endif
             unitUnitDamageDict[key] = pair.Damage;
         }
 
@@ -77,25 +81,37 @@ public class DamageStats : ScriptableObject {
         foreach (var pair in unitBuildingPairs) {
             var key = (pair.AttackerPrefab, pair.TargetPrefab);
             Debug.Assert(!unitBuildingDamageDict.ContainsKey(key), $"Duplicate damage entry for attacker {pair.AttackerPrefab.name} and target {pair.TargetPrefab.name}");
+#if UNITY_EDITOR
+            Debug.Assert(PrefabUtility.IsPartOfPrefabAsset(pair.AttackerPrefab), $"Attacker {pair.AttackerPrefab.name} is not a prefab asset");
+            Debug.Assert(PrefabUtility.IsPartOfPrefabAsset(pair.TargetPrefab), $"Target {pair.TargetPrefab.name} is not a prefab asset");
+#endif
             unitBuildingDamageDict[key] = pair.Damage;
         }
-        
+
         isPrecached = true;
     }
 
-    public float GetDamage(Unit attacker, Unit target) {
+    public float GetDamage(Unit attackerType, Unit unitTargetType) {
+#if UNITY_EDITOR
+        Debug.Assert(PrefabUtility.IsPartOfPrefabAsset(attackerType), $"Attacker {attackerType.name} is not a prefab asset");
+        Debug.Assert(PrefabUtility.IsPartOfPrefabAsset(unitTargetType), $"Target {unitTargetType.name} is not a prefab asset");
+#endif
         EnsureTablesArePrecached();
-        if (unitUnitDamageDict.TryGetValue((attacker, target), out var damage))
+        if (unitUnitDamageDict.TryGetValue((attackerType, unitTargetType), out var damage))
             return damage;
-        Debug.LogWarning($"No damage entry found for attacker {attacker.name} and target {target.name}. Returning 0 damage.");
+        Debug.LogWarning($"No damage entry found for attacker {attackerType.name} and target {unitTargetType.name}. Returning 0 damage.");
         return 0;
     }
 
-    public float GetDamage(Unit attacker, Building target) {
+    public float GetDamage(Unit attackerType, Building buildingTargetType) {
+#if UNITY_EDITOR
+        Debug.Assert(PrefabUtility.IsPartOfPrefabAsset(attackerType), $"Attacker {attackerType.name} is not a prefab asset");
+        Debug.Assert(PrefabUtility.IsPartOfPrefabAsset(buildingTargetType), $"Target {buildingTargetType.name} is not a prefab asset");
+#endif
         EnsureTablesArePrecached();
-        if (unitBuildingDamageDict.TryGetValue((attacker, target), out var damage))
+        if (unitBuildingDamageDict.TryGetValue((attackerType, buildingTargetType), out var damage))
             return damage;
-        Debug.LogWarning($"No damage entry found for attacker {attacker.name} and target {target.name}. Returning 0 damage.");
+        Debug.LogWarning($"No damage entry found for attacker {attackerType.name} and target {buildingTargetType.name}. Returning 0 damage.");
         return 0;
     }
 }
