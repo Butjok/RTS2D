@@ -102,6 +102,10 @@ public class BuildIcon : Image, IPointerClickHandler {
     }
 
     public void OnPointerClick(PointerEventData eventData) {
+
+        if (constructionQueueItem != null && !constructionQueueItem.isValid)
+            constructionQueueItem = null;
+
         if (eventData.button == PointerEventData.InputButton.Left) {
             if (constructionQueueItem == null) {
                 var primaryBuilding = owningHUD.PlayerController.Player.GetPrimaryBuilding(constructionOption.SourceBuildingType);
@@ -110,6 +114,12 @@ public class BuildIcon : Image, IPointerClickHandler {
             }
             else if (constructionQueueItem.BuildStatus == Building.ConstructionQueueItem.Status.OnHold)
                 constructionQueueItem.BuildStatus = Building.ConstructionQueueItem.Status.QueuedOrBuilding;
+            else if (constructionQueueItem.BuildStatus == Building.ConstructionQueueItem.Status.ConstructionComplete) {
+                Debug.Assert(constructionQueueItem.ConstructionOption.Prefab is Building);
+                var buildingPrefab = (Building)constructionQueueItem.ConstructionOption.Prefab;
+                Debug.Assert(owningHUD.PlayerController);
+                owningHUD.PlayerController.StartBuildingPlacement(buildingPrefab);
+            }
         }
         else if (eventData.button == PointerEventData.InputButton.Right) {
             if (constructionQueueItem != null) {
