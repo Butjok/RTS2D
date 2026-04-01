@@ -70,13 +70,13 @@ MonoBehaviour:
     unitPrefab: {fileID: 0}
     buildingPrefab: {fileID: 6527514968814526426, guid: b41211d7f71b6485ab33ea2912d24a16, type: 3}
     cost: 5000
-    buildTime: 15
+    buildTime: 1
     prerequisites: []
   - sourceBuildingType: {fileID: 4128571816054445560}
     unitPrefab: {fileID: 0}
     buildingPrefab: {fileID: 4128571816054445560, guid: 0d1891175bded4b09921e28beacda3bf, type: 3}
     cost: 5000
-    buildTime: 15
+    buildTime: 1
     prerequisites: []
 --- !u!65 &4935524242503908259
 BoxCollider:

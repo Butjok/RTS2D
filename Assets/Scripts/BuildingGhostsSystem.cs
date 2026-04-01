@@ -20,7 +20,9 @@ public class BuildingGhostsSystem : WorldBehaviour {
 
     private void EnsureBuildingGhostExists(Building buildingPrefab) {
         if (!buildingGhosts.ContainsKey(buildingPrefab)) {
-            var ghost = World.Spawn(buildingPrefab, ghost => ghost.SetUpAsGhost());
+            var ghost = World.Spawn(buildingPrefab, ghost => {
+                ghost.Initialize(World, buildingPrefab, null, false, true);
+            });
             buildingGhosts[buildingPrefab] = ghost;
             ghost.gameObject.SetActive(false);
         }

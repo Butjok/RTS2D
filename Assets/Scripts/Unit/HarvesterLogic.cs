@@ -26,27 +26,47 @@ public class HarvesterLogic : MonoBehaviour {
 
     private IEnumerator harvestingAnimationCoroutine;
     private IEnumerator unloadingAnimationCoroutine;
+    private float? newOrderTimer;
 
+    public RefineryBuilding HomeBase {
+        get => homeBase;
+        set => homeBase = value;
+    }
+    
     private void Update() {
 
+        // TODO: make this nicer, cause right not the harvester retries every second.
+        // TODO: but ideally it should 'know' when the gold deposits on the map have changed e.g. those tiles become walkable or not,
+        // TODO: or new gold deposits appeared. And only then try to find a new order if it doesn't have one.
+        
         if (!unit.CurrentOrder) {
             if (loadedAmount < 1) {
-                // find closest cell with gold (closest in terms of spiral order, not actual distance, for performance reasons)
-                var foundGold = false;
-                foreach (var offset in UnitFormation.EnumerateInSpiral(50)) {
-                    var cell = unit.Movement.Cell + offset;
-                    if (!unit.World.Grid.InBounds(cell) || !unit.World.Grid[cell].HasGold)
-                        continue;
-                    if (!unit.World.Grid[cell].isWalkable) {
-                        Debug.LogWarning($"Gold at position {unit.World.Grid.CellToWorldPosition(cell)} is not walkable.");
-                        continue;
+                if (newOrderTimer == null)
+                    newOrderTimer = 0;
+                else {
+                    newOrderTimer += Time.deltaTime;
+                    
+                    if (newOrderTimer > 1) {
+                        newOrderTimer = null;
+                        
+                        // find closest cell with gold (closest in terms of spiral order, not actual distance, for performance reasons)
+                        var foundGold = false;
+                        foreach (var offset in UnitFormation.EnumerateInSpiral(50)) {
+                            var cell = unit.Movement.Cell + offset;
+                            if (!unit.World.Grid.InBounds(cell) || !unit.World.Grid[cell].HasGold)
+                                continue;
+                            if (!unit.World.Grid[cell].isWalkable) {
+                                Debug.LogWarning($"Gold at position {unit.World.Grid.CellToWorldPosition(cell)} is not walkable.");
+                                continue;
+                            }
+                            unit.SetOrder(UnitOrder.Harvest(this, unit.World.Grid.CellToWorldPosition(cell)));
+                            foundGold = true;
+                            break;
+                        }
+                        if (!foundGold && loadedAmount > 0)
+                            unit.SetOrder(UnitOrder.Unload(this, homeBase));
                     }
-                    unit.SetOrder(UnitOrder.Harvest(this, unit.World.Grid.CellToWorldPosition(cell)));
-                    foundGold = true;
-                    break;
                 }
-                if (!foundGold && loadedAmount > 0)
-                    unit.SetOrder(UnitOrder.Unload(this, homeBase));
             }
             else if (homeBase)
                 unit.SetOrder(UnitOrder.Unload(this, homeBase));

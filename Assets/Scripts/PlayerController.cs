@@ -122,15 +122,19 @@ public class PlayerController : WorldBehaviour {
                     unit.Initialize(World, unitPrefab, player);
                     unit.transform.position = hitInfo.point;
                 });
+        
+        oldConstructionOptions.UnionWith(EnumerateConstructionOptions());
 
-        World.onObjectSpawned += OnBuildingSpawned;
+        World.onObjectSpawned += UpdateConstructionOptions;
+        World.onObjectDestroyed += UpdateConstructionOptions;
     }
 
     private void OnDestroy() {
-        World.onObjectSpawned -= OnBuildingSpawned;
+        World.onObjectSpawned -= UpdateConstructionOptions;
+        World.onObjectDestroyed += UpdateConstructionOptions;
     }
 
-    private void OnBuildingSpawned(Object obj) {
+    private void UpdateConstructionOptions(Object obj) {
         if (obj is Building building && !building.IsGhost && building.OwningPlayer == player) {
             constructionOptions.Clear();
             constructionOptions.UnionWith(EnumerateConstructionOptions());
@@ -280,6 +284,7 @@ public class PlayerController : WorldBehaviour {
 
                     foreach (var unit in selectedEntities.OfType<Unit>()) {
 
+                        var harvesterLogic = unit.GetComponent<HarvesterLogic>();
                         var destination = formationPositions[unit];
                         var destinationCell = World.Grid.WorldPositionToCell(destination);
 
@@ -287,11 +292,13 @@ public class PlayerController : WorldBehaviour {
                             unit.SetOrder(UnitOrder.Attack(this, targetUnit, destination));
                         else if (targetBuilding && unit.CanAttack(targetBuilding))
                             unit.SetOrder(UnitOrder.Attack(this, targetBuilding, destination));
-                        else if (unit.GetComponent<HarvesterLogic>()) {
+                        else if (harvesterLogic) {
                             if (World.Grid[destinationCell].HasGold)
                                 unit.SetOrder(UnitOrder.Harvest(this, destination));
-                            else if (targetRefinery && targetRefinery.OwningPlayer == unit.OwningPlayer)
+                            else if (targetRefinery && targetRefinery.OwningPlayer == unit.OwningPlayer) {
+                                harvesterLogic.HomeBase = targetRefinery;
                                 unit.SetOrder(UnitOrder.Unload(this, targetRefinery));
+                            }
                         }
                         else
                             unit.SetOrder(UnitOrder.Move(this, destination));
@@ -324,7 +331,7 @@ public class PlayerController : WorldBehaviour {
                     if (canBePlaced && Input.GetMouseButtonDown(MouseButton.left)) {
                         var buildingsCountOfThisType = player.GetBuildingsCountOf(buildingPrefabToPlace);
                         World.Spawn(buildingPrefabToPlace, building => {
-                            building.Initialize(World, buildingPrefabToPlace, player, buildingsCountOfThisType == 0);
+                            building.Initialize(World, buildingPrefabToPlace, player, buildingsCountOfThisType == 0, false);
                             building.transform.position = hitInfo.point;
                             building.SetPlayConstructionAnimationOnStart(true);
                         });
