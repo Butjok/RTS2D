@@ -27,10 +27,10 @@ public class BuildIcon : Image, IPointerClickHandler {
     [SerializeField] private TMP_Text label;
 
     private Material materialInstance;
-    private Building.ConstructionOption constructionOption;
-    private Building.ConstructionQueueItem constructionQueueItem;
+    private ConstructionOption constructionOption;
+    private ConstructionQueueItem constructionQueueItem;
 
-    public void Initialize(Building.ConstructionOption constructionOption) {
+    public void Initialize(ConstructionOption constructionOption) {
         this.constructionOption = constructionOption;
         InstantiateMaterial();
         Progress = 1;
@@ -52,14 +52,8 @@ public class BuildIcon : Image, IPointerClickHandler {
     }
 
     private void Update() {
-        if (constructionQueueItem != null) {
-            if (!constructionQueueItem.isValid)
-                constructionQueueItem = null;
-            else {
-                if (constructionQueueItem.BuildStatus == Building.ConstructionQueueItem.Status.QueuedOrBuilding)
-                    Progress = constructionQueueItem.Progress;
-            }
-        }
+        if (constructionQueueItem && constructionQueueItem.BuildStatus == ConstructionQueueItem.Status.QueuedOrBuilding)
+            Progress = constructionQueueItem.Progress;
     }
 
     public float Progress {
@@ -103,32 +97,42 @@ public class BuildIcon : Image, IPointerClickHandler {
 
     public void OnPointerClick(PointerEventData eventData) {
 
-        if (constructionQueueItem != null && !constructionQueueItem.isValid)
-            constructionQueueItem = null;
-
         if (eventData.button == PointerEventData.InputButton.Left) {
-            if (constructionQueueItem == null) {
+
+            if (!constructionQueueItem) {
                 var primaryBuilding = owningHUD.PlayerController.Player.GetPrimaryBuilding(constructionOption.SourceBuildingType);
                 Debug.Assert(primaryBuilding);
-                constructionQueueItem = primaryBuilding.StartBuilding(constructionOption);
+                constructionQueueItem = primaryBuilding.ConstructionQueue.StartBuilding(constructionOption);
             }
-            else if (constructionQueueItem.BuildStatus == Building.ConstructionQueueItem.Status.OnHold)
-                constructionQueueItem.BuildStatus = Building.ConstructionQueueItem.Status.QueuedOrBuilding;
-            else if (constructionQueueItem.BuildStatus == Building.ConstructionQueueItem.Status.ConstructionComplete) {
+
+            else if (constructionQueueItem.BuildStatus == ConstructionQueueItem.Status.OnHold)
+                constructionQueueItem.BuildStatus = ConstructionQueueItem.Status.QueuedOrBuilding;
+
+            else if (constructionQueueItem.BuildStatus == ConstructionQueueItem.Status.ConstructionComplete) {
                 Debug.Assert(constructionQueueItem.ConstructionOption.Prefab is Building);
                 var buildingPrefab = (Building)constructionQueueItem.ConstructionOption.Prefab;
                 Debug.Assert(owningHUD.PlayerController);
                 owningHUD.PlayerController.StartBuildingPlacement(buildingPrefab);
             }
+
+            else if (constructionQueueItem.BuildStatus == ConstructionQueueItem.Status.QueuedOrBuilding && constructionQueueItem.ConstructionOption.Prefab is Unit)
+                constructionQueueItem.amount++;
         }
+
         else if (eventData.button == PointerEventData.InputButton.Right) {
-            if (constructionQueueItem != null) {
-                if (constructionQueueItem.BuildStatus == Building.ConstructionQueueItem.Status.QueuedOrBuilding)
-                    constructionQueueItem.BuildStatus = Building.ConstructionQueueItem.Status.OnHold;
-                else if (constructionQueueItem.BuildStatus == Building.ConstructionQueueItem.Status.OnHold) {
-                    constructionQueueItem.BuildStatus = Building.ConstructionQueueItem.Status.Cancelled;
-                    constructionQueueItem = null;
-                    Progress = 1;
+            if (constructionQueueItem) {
+                
+                if (constructionQueueItem.BuildStatus == ConstructionQueueItem.Status.QueuedOrBuilding)
+                    constructionQueueItem.BuildStatus = ConstructionQueueItem.Status.OnHold;
+
+                else if (constructionQueueItem.BuildStatus == ConstructionQueueItem.Status.OnHold) {
+                    if (constructionQueueItem.amount > 1)
+                        constructionQueueItem.amount--;
+                    else {
+                        constructionQueueItem.BuildStatus = ConstructionQueueItem.Status.Cancelled;
+                        constructionQueueItem = null;
+                        Progress = 1;
+                    }
                 }
             }
         }

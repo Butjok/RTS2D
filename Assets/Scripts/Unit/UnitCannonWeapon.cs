@@ -33,7 +33,6 @@ public class UnitCannonWeapon : UnitWeapon {
     [SerializeField] private AudioClip shotSound;
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private UnitTurret turret;
-    [SerializeField] private RoundTableSprite turretRoundTableSprite;
 
     private void OnValidate() {
         if (audioSource == null)
@@ -54,7 +53,7 @@ public class UnitCannonWeapon : UnitWeapon {
     // rotate turret to target or forward if no target
     private void Update() {
         var desiredRotation = OwningUnit.transform.rotation;
-        if (OwningUnit.CurrentOrder && OwningUnit.CurrentOrder.AttackTarget != null && OwningUnit.CurrentOrder.AttackTarget.ObjectExists) {
+        if (OwningUnit.CurrentOrder != null && OwningUnit.CurrentOrder.AttackTarget != null && OwningUnit.CurrentOrder.AttackTarget.ObjectExists) {
             var targetPosition = OwningUnit.CurrentOrder.AttackTarget.PositionToBeAttackedAt;
             var direction = targetPosition - turret.turretTransform.position;
             direction.Scale(new Vector3(1, 0, 1)); // ignore vertical difference for turret rotation
@@ -62,9 +61,6 @@ public class UnitCannonWeapon : UnitWeapon {
                 desiredRotation = Quaternion.LookRotation(direction);
         }
         turret.turretTransform.rotation = Quaternion.RotateTowards(turret.turretTransform.rotation, desiredRotation, turret.turretRotationSpeed * Time.deltaTime);
-
-        if (turretRoundTableSprite)
-            turretRoundTableSprite.Yaw = turret.turretTransform.eulerAngles.y;
     }
 
     protected override IEnumerator AttackAnimation_Internal(IAttackTarget target) {

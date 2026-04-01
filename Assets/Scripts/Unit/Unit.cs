@@ -136,7 +136,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, ICan
     }
 
     public void CancelOrder() {
-        currentOrder = new();
+        currentOrder = null;
         World.MovingUnitsSet.Remove(this);
         movement.ClearPath();
         movement.shouldMoveAlongPath = true;
@@ -144,7 +144,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, ICan
 
     private void Update() {
         if (weapon) {
-            if ((bool)currentOrder && currentOrder.AttackTarget != null && currentOrder.AttackTarget.ObjectExists && weapon.IsInAttackRange(currentOrder.AttackTarget)) {
+            if (currentOrder != null && currentOrder.AttackTarget != null && currentOrder.AttackTarget.ObjectExists && weapon.IsInAttackRange(currentOrder.AttackTarget)) {
                 weapon.AttackNow(currentOrder.AttackTarget);
                 movement.shouldMoveAlongPath = false;
             }
@@ -175,7 +175,7 @@ public class Unit : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, ICan
     }
 
     private void CancelOrderIfTargetIsDestroyed(Object obj) {
-        if (currentOrder && (obj == currentOrder.TargetUnit || obj == currentOrder.TargetBuilding))
+        if (currentOrder != null && (obj == currentOrder.TargetUnit || obj == currentOrder.TargetBuilding))
             CancelOrder();
     }
 

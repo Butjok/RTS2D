@@ -17,80 +17,56 @@ using UnityEngine;
 using Object = UnityEngine.Object;
 
 [Serializable]
-public struct UnitOrder {
+public class UnitOrder {
 
     public enum Kind {
-        None,
         Move,
         Attack,
         Harvest,
         Unload
     }
 
-    [SerializeField] private Object source;
+    [SerializeField] private Object orderSource;
     [SerializeField] private Kind kind;
     [SerializeField] private Vector2 moveDestination;
     [SerializeField] private Unit targetUnit;
     [SerializeField] private Building targetBuilding;
     [SerializeField] private float creationTime;
 
-    public Object Source => source;
+    public Object OrderSource => orderSource;
     public Vector2 MoveDestination => moveDestination;
     public Unit TargetUnit => targetUnit;
     public Building TargetBuilding => targetBuilding;
     public IAttackTarget AttackTarget => targetUnit ? targetUnit : targetBuilding;
     public float Age => Time.time - creationTime;
     public Kind OrderKind => kind;
-    
-    public static implicit operator bool(UnitOrder order) {
-        return order.OrderKind != Kind.None;
+
+    private UnitOrder(Kind kind, Vector2 moveDestination, Object orderSource) {
+        this.kind = kind;
+        this.moveDestination = moveDestination;
+        this.orderSource = orderSource;
+        creationTime = Time.time;
     }
 
-    public static UnitOrder Move(Object source,Vector2 destination) {
-        return new UnitOrder {
-            kind = Kind.Move,
-            source = source,
-            moveDestination = destination,
-            creationTime =  Time.time
+    public static UnitOrder Move(Object source, Vector2 destination) {
+        return new UnitOrder(Kind.Move, destination, source);
+    }
+    public static UnitOrder Attack(Object source, Unit targetUnit, Vector2 destination) {
+        return new UnitOrder(Kind.Attack, destination, source) {
+            targetUnit = targetUnit
         };
     }
-
-    public static UnitOrder Attack(Object source,Unit targetUnit, Vector2 destination) {
-        return new UnitOrder {
-            kind = Kind.Attack,
-            source = source,
-            moveDestination = destination,
-            targetUnit = targetUnit,
-            creationTime =  Time.time
+    public static UnitOrder Attack(Object source, Building targetBuilding, Vector2 destination) {
+        return new UnitOrder(Kind.Attack, destination, source) {
+            targetBuilding = targetBuilding
         };
     }
-
-    public static UnitOrder Attack(Object source,Building targetBuilding, Vector2 destination) {
-        return new UnitOrder {
-            kind = Kind.Attack,
-            source = source,
-            moveDestination = destination,
-            targetBuilding = targetBuilding,
-            creationTime =  Time.time
-        };
-    }
-
     public static UnitOrder Harvest(Object source, Vector2 destination) {
-        return new UnitOrder {
-            kind = Kind.Harvest,
-            source = source,
-            moveDestination = destination,
-            creationTime =  Time.time
-        };
+        return new UnitOrder(Kind.Harvest, destination, source);
     }
-
-    public static UnitOrder Unload(Object source,RefineryBuilding refinery) {
-        return new UnitOrder {
-            kind = Kind.Unload,
-            source = source,
-            moveDestination = refinery.GoldDepositPosition,
-            targetBuilding = refinery,
-            creationTime =  Time.time
+    public static UnitOrder Unload(Object source, RefineryBuilding refinery) {
+        return new UnitOrder(Kind.Unload, refinery.GoldDepositPosition, source) {
+            targetBuilding = refinery
         };
     }
 }

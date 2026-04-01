@@ -16,109 +16,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Object = UnityEngine.Object;
+using UnityEngine.UI;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
+[RequireComponent(typeof(ConstructionQueue))]
 public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, ICanBePrePlaced {
 
-    [Serializable]
-    public class ConstructionOption {
-
-        [Serializable]
-        public struct Prerequisite {
-            [SerializeField] private Building buildingType;
-            [SerializeField] private int requiredCount;
-
-            public Building BuildingType => buildingType;
-            public int RequiredCount => requiredCount;
-        }
-
-        [SerializeField] private Building sourceBuildingType; // which building type (prefab) is the source of this construction option
-        [SerializeField] private Unit unitPrefab;
-        [SerializeField] private Building buildingPrefab;
-        [SerializeField] private float cost;
-        [SerializeField] private float buildTime;
-        [SerializeField] private List<Prerequisite> prerequisites = new();
-
-        public Object Prefab => unitPrefab ? unitPrefab : buildingPrefab;
-        public float Cost => cost;
-        public float BuildTime => buildTime;
-        public IReadOnlyList<Prerequisite> Prerequisites => prerequisites;
-        public Building SourceBuildingType => sourceBuildingType;
-
-        public bool MeetsPrerequisites(Player player) {
-            foreach (var prerequisite in prerequisites) {
-                var count = player.GetBuildingsCountOf(prerequisite.BuildingType);
-                if (count < prerequisite.RequiredCount)
-                    return false;
-            }
-            return true;
-        }
-    }
-
-    [Serializable]
-    public class ConstructionQueueItem {
-
-        public enum Status {
-            QueuedOrBuilding,
-            OnHold,
-            Cancelled,
-            ConstructionComplete
-        }
-
-        [SerializeField] private ConstructionOption constructionOption;
-        [SerializeField] private Building building;
-
-        public float timeElapsed;
-        private Status buildStatus = Status.QueuedOrBuilding;
-        public bool isValid = true;
-
-        public ConstructionOption ConstructionOption => constructionOption;
-        public float Progress => Mathf.Clamp01(timeElapsed / constructionOption.BuildTime);
-
-        public ConstructionQueueItem(Building building, ConstructionOption constructionOption) {
-            this.building = building;
-            this.constructionOption = constructionOption;
-        }
-
-        public Status BuildStatus {
-            get => buildStatus;
-            set {
-                buildStatus = value;
-                switch (buildStatus) {
-
-                    case Status.QueuedOrBuilding: {
-                        Debug.Assert(building.ConstructionQueue.Contains(this));
-                        if (building.OwningPlayer.PlayerController)
-                            building.OwningPlayer.PlayerController.NotifyResumeBuilding(this);
-                        buildStatus = Status.QueuedOrBuilding;
-                        break;
-                    }
-
-                    case Status.OnHold: {
-                        Debug.Assert(building.ConstructionQueue.Contains(this));
-                        if (building.OwningPlayer.PlayerController)
-                            building.OwningPlayer.PlayerController.NotifyPutOnHold(this);
-                        buildStatus = Status.OnHold;
-                        break;
-                    }
-
-                    case Status.Cancelled: {
-                        Debug.Assert(building.ConstructionQueue.Contains(this));
-                        building.constructionQueue.Remove(this);
-                        if (building.OwningPlayer.PlayerController)
-                            building.OwningPlayer.PlayerController.NotifyCancelled(this);
-                        buildStatus = Status.Cancelled;
-                        break;
-                    }
-                }
-            }
-        }
-
-        public static implicit operator bool(ConstructionQueueItem item) => item != null && item.isValid;
-    }
 
     private static readonly int shader_playerColor = Shader.PropertyToID("_PlayerColor");
     private static readonly int shader_baseColor = Shader.PropertyToID("_Color");
@@ -132,8 +37,8 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     [SerializeField] private bool isFullyBuilt = true;
     [SerializeField] private bool canEverBeSelected = true;
     [SerializeField] private List<ConstructionOption> constructionOptions = new();
-    private readonly List<ConstructionQueueItem> constructionQueue = new();
 
+    [SerializeField] private ConstructionQueue constructionQueue;
     private float health = 1;
     private float? lastDamageTime;
 
@@ -144,7 +49,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     private Color? playerColor;
 
     public BoxCollider BoxCollider => boxCollider;
-    public List<ConstructionQueueItem> ConstructionQueue => constructionQueue;
+    public ConstructionQueue ConstructionQueue => constructionQueue;
 
     public IReadOnlyList<ConstructionOption> ConstructionOptions {
         get {
@@ -204,6 +109,11 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
             foreach (var sharedMaterial in sharedGhostMaterials)
                 sharedMaterial.SetColor(shader_baseColor, color);
         }
+    }
+
+    private void OnValidate() {
+        if (!constructionQueue)
+            constructionQueue = GetComponent<ConstructionQueue>();
     }
 
     private void Start() {
@@ -286,39 +196,6 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     }
 
     public bool ObjectExists => this;
-
-    public ConstructionQueueItem StartBuilding(ConstructionOption constructionOption) {
-        Debug.Assert(constructionOption.MeetsPrerequisites(owningPlayer));
-        var itemInConstruction = new ConstructionQueueItem(this, constructionOption);
-        constructionQueue.Add(itemInConstruction);
-        if (owningPlayer.PlayerController)
-            owningPlayer.PlayerController.NotifyStartBuilding(this, constructionOption);
-        return itemInConstruction;
-    }
-
-    private void Update() {
-        if (constructionQueue.Count > 0) {
-            var constructionQueueItem = constructionQueue[0];
-
-            if (constructionQueueItem.BuildStatus == ConstructionQueueItem.Status.QueuedOrBuilding) {
-
-                constructionQueueItem.timeElapsed += Time.deltaTime;
-
-                if (constructionQueueItem.timeElapsed >= constructionQueueItem.ConstructionOption.BuildTime && constructionQueueItem.BuildStatus != ConstructionQueueItem.Status.ConstructionComplete) {
-                    constructionQueueItem.BuildStatus = ConstructionQueueItem.Status.ConstructionComplete;
-
-                    if (owningPlayer.PlayerController)
-                        owningPlayer.PlayerController.NotifyConstructionComplete(this, constructionQueueItem.ConstructionOption.Prefab);
-
-                    if (constructionQueueItem.ConstructionOption.Prefab is Unit) {
-                        constructionQueue.Remove(constructionQueueItem);
-                        constructionQueueItem.isValid = false;
-                    }
-                    else if (constructionQueueItem.ConstructionOption.Prefab is Building) { }
-                }
-            }
-        }
-    }
 
     public float? LastDamageTime => lastDamageTime;
 

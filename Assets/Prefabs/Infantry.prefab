@@ -316,8 +316,6 @@ MonoBehaviour:
   movement: {fileID: 6999701738486167634}
   owningPlayer: {fileID: 0}
   health: 1
-  cost: 1000
-  buildTime: 3
   radiusInFormation: 0.5
   renderers:
   - {fileID: 3831960648216866428}
@@ -346,16 +344,16 @@ MonoBehaviour:
   - {fileID: 8300000, guid: c827a643a8ee8534f8ae1b6436c8f4e7, type: 3}
   - {fileID: 8300000, guid: 39b507c5c4a7b0a4b90b413aa6f73e13, type: 3}
   - {fileID: 8300000, guid: 03fd9749e05099548aec992759fdf6bb, type: 3}
-  turret:
-    turretTransform: {fileID: 0}
-    barrelMuzzleTransform: {fileID: 0}
-  turretRelativeYaw: 0
-  turretRotationSpeed: 90
   currentOrder:
+    orderSource: {fileID: 0}
+    kind: 0
+    moveDestination: {x: 0, y: 0}
     targetUnit: {fileID: 0}
     targetBuilding: {fileID: 0}
+    creationTime: 0
   kind: 0
   effectsAudioSource: {fileID: 7835363446607542024}
+  orderSource: {fileID: 0}
 --- !u!114 &6999701738486167634
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -369,6 +367,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   unit: {fileID: 8676087694340533686}
+  viewBase: {fileID: 6905337379113967392}
   cell: {x: 0, y: 0}
   pathRenderer: {fileID: 3291945252028627405}
   shouldMoveAlongPath: 1
@@ -379,7 +378,7 @@ MonoBehaviour:
   offThePathTimeThresholdForRepath: 1
   requestOtherUnitToStepAsideTimeThreshold: 0.5
   crushingAudioClip: {fileID: 0}
-  wasRequestToStepAsideBy: []
+  wasRequestedToStepAsideBy: []
   aStarPath: []
   notSmoothPath: []
   smoothPath: []
@@ -703,6 +702,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1854822889200090567}
   - component: {fileID: 7339410849866965056}
+  - component: {fileID: 1682871073888659292}
   m_Layer: 8
   m_Name: Sprite
   m_TagString: Untagged
@@ -780,6 +780,22 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &1682871073888659292
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4678167433710927849}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a58582c858224144a822d766e0c71d8e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  owningUnit: {fileID: 8676087694340533686}
+  sourceTransform: {fileID: 6905337379113967392}
+  spriteRenderer: {fileID: 7339410849866965056}
+  roundTableSprites: []
 --- !u!1 &5413717381579473937
 GameObject:
   m_ObjectHideFlags: 0

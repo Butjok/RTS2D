@@ -98,7 +98,6 @@ GameObject:
   - component: {fileID: 7173177982015303562}
   - component: {fileID: 8676087694340533686}
   - component: {fileID: 2588247011638473206}
-  - component: {fileID: 3151481329375191}
   - component: {fileID: 2557441229617441091}
   - component: {fileID: 3291945252028627405}
   - component: {fileID: 3436219795647450287}
@@ -170,7 +169,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: cd3f32c7c5cb541a98a1ea59362a80b9, type: 3}
   deathScreams: []
   currentOrder:
-    source: {fileID: 0}
+    orderSource: {fileID: 0}
     kind: 0
     moveDestination: {x: 0, y: 0}
     targetUnit: {fileID: 0}
@@ -192,6 +191,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   unit: {fileID: 8676087694340533686}
+  viewBase: {fileID: 2417167683978420997}
   cell: {x: 0, y: 0}
   pathRenderer: {fileID: 3291945252028627405}
   shouldMoveAlongPath: 1
@@ -202,59 +202,11 @@ MonoBehaviour:
   offThePathTimeThresholdForRepath: 1
   requestOtherUnitToStepAsideTimeThreshold: 0.5
   crushingAudioClip: {fileID: 8300000, guid: f2452fc17e332984b899c080b9ecf3cd, type: 3}
-  roundTableSprite: {fileID: 3151481329375191}
   wasRequestedToStepAsideBy: []
   aStarPath: []
   notSmoothPath: []
   smoothPath: []
   smoothPathCells: []
---- !u!114 &3151481329375191
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1616467520558958961}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a58582c858224144a822d766e0c71d8e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  owningUnit: {fileID: 8676087694340533686}
-  spriteRenderer: {fileID: 7339410849866965056}
-  roundTableSprites:
-  - {fileID: 21300000, guid: 44998405c2d2c5a4bb051b2e7480cef2, type: 3}
-  - {fileID: 21300000, guid: 6cafcf6f826ca474b9c7836bcc5be518, type: 3}
-  - {fileID: 21300000, guid: 622d0fc307dfd8f4da89f0e86f64337d, type: 3}
-  - {fileID: 21300000, guid: 8b248bce391241b4fa3bf56278db4e0e, type: 3}
-  - {fileID: 21300000, guid: 9c0a246b11c8bb44fa6ea35d45f5c6f0, type: 3}
-  - {fileID: 21300000, guid: eafc2ef876e0ede48837056bf52bf4d8, type: 3}
-  - {fileID: 21300000, guid: 3ce25d22d9ec6f449817ddb244f6e413, type: 3}
-  - {fileID: 21300000, guid: 1ff7b1b6e2040be4c981796c11963200, type: 3}
-  - {fileID: 21300000, guid: 802b4e049e6e1c54e82a9ebb71e64584, type: 3}
-  - {fileID: 21300000, guid: 117e0ddfddbfc7043ab5516c40ec9714, type: 3}
-  - {fileID: 21300000, guid: f3f1a10dd532e4344b41b5b55a07b745, type: 3}
-  - {fileID: 21300000, guid: ba8bdef6b8025594ca25fd542d20f9ec, type: 3}
-  - {fileID: 21300000, guid: 84bb89c0ed5032b438c831936f47d645, type: 3}
-  - {fileID: 21300000, guid: 41b7fc68099501742bdc3838c92bef7f, type: 3}
-  - {fileID: 21300000, guid: 6dede3e001127ea4d9a9db5e8440733d, type: 3}
-  - {fileID: 21300000, guid: 6e45993b385247b4da212f6323c5f6de, type: 3}
-  - {fileID: 21300000, guid: 5063237856eae5b4893716510546d5e6, type: 3}
-  - {fileID: 21300000, guid: f2712bffe5fd7b54db0adae6ea8febb0, type: 3}
-  - {fileID: 21300000, guid: 532985107b3c0184782d8fae430d02c7, type: 3}
-  - {fileID: 21300000, guid: 2bd51735b15e35547ad490e9b9aa4d96, type: 3}
-  - {fileID: 21300000, guid: dea32e914a3170d4d9737c7354314d46, type: 3}
-  - {fileID: 21300000, guid: 0cbd3053779ef1a459215083f673a66e, type: 3}
-  - {fileID: 21300000, guid: d2c7675caaa52b74fa754b1c98bc44f4, type: 3}
-  - {fileID: 21300000, guid: 2746d85890b8fe345bb0bf808d1471f7, type: 3}
-  - {fileID: 21300000, guid: 9eaad37387f960f4d9892c169cf92335, type: 3}
-  - {fileID: 21300000, guid: dba747ea82fba694c94a358323b4af41, type: 3}
-  - {fileID: 21300000, guid: d51cc66f4ae90004c840004c5c42c059, type: 3}
-  - {fileID: 21300000, guid: ea4e9006104b09f4c993b2dde3ba56a5, type: 3}
-  - {fileID: 21300000, guid: 4207a0efdbd76994e91e3a0b9e61521f, type: 3}
-  - {fileID: 21300000, guid: 682f37b5a8d8c0c499291bb33856e254, type: 3}
-  - {fileID: 21300000, guid: 8d9c51c903cdf4d4ca6d53055fd85734, type: 3}
-  - {fileID: 21300000, guid: 62729bc3c1ba24948b1042c11f812381, type: 3}
 --- !u!135 &2557441229617441091
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -579,6 +531,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   owningUnit: {fileID: 8676087694340533686}
+  sourceTransform: {fileID: 2417167683978420997}
   spriteRenderer: {fileID: 7339410849866965056}
   roundTableSprites:
   - {fileID: 21300000, guid: 44998405c2d2c5a4bb051b2e7480cef2, type: 3}
@@ -1059,4 +1012,3 @@ MonoBehaviour:
     muzzleTransforms:
     - {fileID: 2817902343342891406}
     turretRotationSpeed: 90
-  turretRoundTableSprite: {fileID: 0}

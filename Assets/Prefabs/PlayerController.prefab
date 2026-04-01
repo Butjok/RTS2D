@@ -72,7 +72,7 @@ MonoBehaviour:
   announcer_onHold: {fileID: 8300000, guid: b4320cfc11820e048bf982b5ad44a5cd, type: 3}
   announcer_cancelled: {fileID: 8300000, guid: 4e4c9638c52613142a05ad239561da3f, type: 3}
   announcer_reinforcementsHaveArrived: {fileID: 0}
-  announcer_lowerPower: {fileID: 0}
+  announcer_lowPower: {fileID: 0}
 --- !u!20 &1514448831429975428
 Camera:
   m_ObjectHideFlags: 0

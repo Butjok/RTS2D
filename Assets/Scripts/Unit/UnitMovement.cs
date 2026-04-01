@@ -21,6 +21,7 @@ using UnityEngine;
 public class UnitMovement : MonoBehaviour {
 
     [SerializeField] private Unit unit;
+    [SerializeField] private Transform viewBase; // this is a transform which is actually getting rotated in a 3D view (not translated!)
     [SerializeField] private Vector2Int cell;
     [SerializeField] private LineRenderer pathRenderer;
 
@@ -35,7 +36,6 @@ public class UnitMovement : MonoBehaviour {
     [SerializeField] private float requestOtherUnitToStepAsideTimeThreshold = .5f;
 
     [SerializeField] private AudioClip crushingAudioClip;
-    [SerializeField] RoundTableSprite roundTableSprite;
 
     private readonly List<(Vector2 start, Vector2 end)> movePathSegments = new();
 
@@ -104,26 +104,26 @@ public class UnitMovement : MonoBehaviour {
 
         ReservedCell = endCell;
 
-        var start = transform.position.ToVector2();
+        var start = unit.transform.position.ToVector2();
 
         var desiredRotation = Quaternion.LookRotation((end - start).ToVector3());
         if (hasRotationSpeed) {
-            if (!Mathf.Approximately(desiredRotation.eulerAngles.y, transform.rotation.eulerAngles.y)) {
+            if (!Mathf.Approximately(desiredRotation.eulerAngles.y, viewBase.rotation.eulerAngles.y)) {
                 var elapsedTime = 0f;
-                var startRotation = transform.rotation;
+                var startRotation = viewBase.rotation;
                 var angleDifference = Quaternion.Angle(startRotation, desiredRotation);
                 var duration = angleDifference / rotationSpeed;
                 while (elapsedTime < duration) {
                     var a = elapsedTime / duration;
-                    transform.rotation = Quaternion.Slerp(startRotation, desiredRotation, a);
+                    viewBase.rotation = Quaternion.Slerp(startRotation, desiredRotation, a);
                     elapsedTime += Time.deltaTime;
                     yield return null;
                 }
-                transform.rotation = desiredRotation;
+                viewBase.rotation = desiredRotation;
             }
         }
         else
-            transform.rotation = desiredRotation;
+            viewBase.rotation = desiredRotation;
 
         {
             var elapsedTime = Time.deltaTime;
@@ -131,11 +131,11 @@ public class UnitMovement : MonoBehaviour {
             var duration = distance / moveSpeed;
             while (elapsedTime < duration) {
                 var t = elapsedTime / duration;
-                transform.position = Vector2.Lerp(start, end, t).ToVector3();
+                unit.transform.position = Vector2.Lerp(start, end, t).ToVector3();
                 elapsedTime += Time.deltaTime;
                 yield return null;
             }
-            transform.position = end.ToVector3();
+            unit.transform.position = end.ToVector3();
         }
 
         unit.World.Grid[cell].occupiedBy = null;
@@ -160,13 +160,13 @@ public class UnitMovement : MonoBehaviour {
 
     // Snap to grid and mark as occupied
     private void Awake() {
-        cell = unit.World.Grid.WorldPositionToCell(transform.position.ToVector2());
+        cell = unit.World.Grid.WorldPositionToCell(unit.transform.position.ToVector2());
 
         Debug.Assert(unit.World.Grid[cell].isWalkable);
         Debug.Assert(!unit.World.Grid[cell].occupiedBy);
         Debug.Assert(!unit.World.Grid[cell].reservedBy);
 
-        transform.position = unit.World.Grid.CellToWorldPosition(cell).ToVector3();
+        unit.transform.position = unit.World.Grid.CellToWorldPosition(cell).ToVector3();
         unit.World.Grid[cell].occupiedBy = unit;
     }
 
@@ -283,7 +283,7 @@ public class UnitMovement : MonoBehaviour {
 
             // unit got off move path
             else {
-                //Draw.ingame.Label3D(transform.position + Vector3.up, Quaternion.identity, "Off the path!", .1f);
+                //Draw.ingame.Label3D(unit.transform.position + Vector3.up, Quaternion.identity, "Off the path!", .1f);
 
                 if (offThePathTime == null)
                     offThePathTime = 0;
@@ -296,9 +296,6 @@ public class UnitMovement : MonoBehaviour {
                 }
             }
         }
-
-        if (roundTableSprite)
-            roundTableSprite.Yaw = transform.rotation.eulerAngles.y;
     }
 
     public void ClearPath() {

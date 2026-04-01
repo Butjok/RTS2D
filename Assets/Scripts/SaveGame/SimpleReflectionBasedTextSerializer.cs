@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -20,6 +19,14 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using UnityEngine;
+
+/*
+ * This is a very simple implementation of automatic serialization of object fields based on the reflection information.
+ * Right now this is only used to save and load game settings.
+ * In the future this might be used to actually save and load game state, to support references to objects, support spawning of objects, versioning.
+ * Also this should be implemented as a code generation rather than being based on reflection.
+ * - Viktor Fedotov 01.04.2026
+ */
 
 public class SimpleReflectionBasedTextSerializer {
 
@@ -35,7 +42,7 @@ public class SimpleReflectionBasedTextSerializer {
         this.reader = reader;
     }
 
-    private IEnumerable<FieldInfo> EnumerateFields(Type type) {
+    private static IEnumerable<FieldInfo> EnumerateFields(IReflect type) {
         return type.GetFields(defaultBindingFlags).Where(field => field.GetCustomAttribute<SaveGameAttribute>() != null);
     }
 

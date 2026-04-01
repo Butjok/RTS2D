@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1176202364023974594}
   - component: {fileID: 4128571816054445560}
   - component: {fileID: 4935524242503908259}
+  - component: {fileID: 387407875213640149}
   m_Layer: 9
   m_Name: ConstructionYard
   m_TagString: Untagged
@@ -78,6 +79,7 @@ MonoBehaviour:
     cost: 5000
     buildTime: 1
     prerequisites: []
+  constructionQueue: {fileID: 387407875213640149}
 --- !u!65 &4935524242503908259
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -99,6 +101,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2, y: 1, z: 2}
   m_Center: {x: 0, y: 0.5, z: 0}
+--- !u!114 &387407875213640149
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8075325031141059490}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de6a09205c9c4d569b84962aa3c95f27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  owningBuilding: {fileID: 4128571816054445560}
+  constructionQueue: []
 --- !u!1 &8580499463624096098
 GameObject:
   m_ObjectHideFlags: 0

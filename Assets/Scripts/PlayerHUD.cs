@@ -15,7 +15,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class PlayerHUD : WorldBehaviour {
 
@@ -189,7 +188,7 @@ public class PlayerHUD : WorldBehaviour {
         defeatScreen.SetActive(true);
     }
 
-    public void RespawnBuildIcons(IEnumerable<Building.ConstructionOption> constructionOptions) {
+    public void RespawnBuildIcons(IEnumerable<ConstructionOption> constructionOptions) {
         
         foreach (var child in buildIconTemplate.transform.parent.GetComponentsInChildren<BuildIcon>())
             Destroy(child.gameObject);

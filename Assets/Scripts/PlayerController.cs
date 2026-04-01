@@ -79,10 +79,10 @@ public class PlayerController : WorldBehaviour {
     [SerializeField] private AudioClip announcer_onHold;
     [SerializeField] private AudioClip announcer_cancelled;
     [SerializeField] private AudioClip announcer_reinforcementsHaveArrived;
-    [SerializeField] private AudioClip announcer_lowerPower;
+    [SerializeField] private AudioClip announcer_lowPower;
 
-    private readonly HashSet<Building.ConstructionOption> constructionOptions = new();
-    private readonly HashSet<Building.ConstructionOption> oldConstructionOptions = new();
+    private readonly HashSet<ConstructionOption> constructionOptions = new();
+    private readonly HashSet<ConstructionOption> oldConstructionOptions = new();
 
     public IReadOnlyList<ISelectable> SelectedEntities => selectedEntities;
 
@@ -91,7 +91,7 @@ public class PlayerController : WorldBehaviour {
         this.player = player;
     }
 
-    public IEnumerable<Building.ConstructionOption> EnumerateConstructionOptions() {
+    public IEnumerable<ConstructionOption> EnumerateConstructionOptions() {
         foreach (var buildingType in player.EnumerateBuildingTypes()) {
             foreach (var constructionOption in buildingType.ConstructionOptions)
                 yield return constructionOption;
@@ -376,11 +376,8 @@ public class PlayerController : WorldBehaviour {
 
     private void UpdatePlayerCameraTransform() {
         if (playerCameraManager) {
-            var cameraPosition = Vector3.zero;
-            var cameraRotation = Quaternion.identity;
-            playerCameraManager.GetView(out cameraPosition, out cameraRotation);
-            playerCamera.transform.position = cameraPosition;
-            playerCamera.transform.rotation = cameraRotation;
+            playerCameraManager.GetView(out var cameraPosition, out var cameraRotation);
+            playerCamera.transform.SetPositionAndRotation(cameraPosition, cameraRotation);
         }
     }
 
@@ -393,7 +390,7 @@ public class PlayerController : WorldBehaviour {
         return true;
     }
 
-    public void NotifyStartBuilding(Building factory, Building.ConstructionOption constructionOption) {
+    public void NotifyStartBuilding(ConstructionQueueItem item) {
         World.AudioSystem.SayAnnouncerVoiceLine(announcer_building);
     }
 
@@ -427,19 +424,19 @@ public class PlayerController : WorldBehaviour {
         World.AudioSystem.SayAnnouncerVoiceLine(announcer_battleControlTerminated);
     }
 
-    public void NotifyPutOnHold(Building.ConstructionQueueItem item) {
+    public void NotifyPutOnHold(ConstructionQueueItem item) {
         World.AudioSystem.SayAnnouncerVoiceLine(announcer_onHold);
     }
-    public void NotifyCancelled(Building.ConstructionQueueItem item) {
+    public void NotifyCancelled(ConstructionQueueItem item) {
         World.AudioSystem.SayAnnouncerVoiceLine(announcer_cancelled);
     }
-    public void NotifyResumeBuilding(Building.ConstructionQueueItem constructionQueueItem) {
+    public void NotifyResumeBuilding(ConstructionQueueItem constructionQueueItem) {
         World.AudioSystem.SayAnnouncerVoiceLine(announcer_building);
     }
     public void NotifyReinforcementsHaveArrived() {
         World.AudioSystem.SayAnnouncerVoiceLine(announcer_reinforcementsHaveArrived);
     }
-    public void NotifyLowerPower() {
-        World.AudioSystem.SayAnnouncerVoiceLine(announcer_lowerPower);
+    public void NotifyLowPower() {
+        World.AudioSystem.SayAnnouncerVoiceLine(announcer_lowPower);
     }
 }

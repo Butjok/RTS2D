@@ -35,11 +35,11 @@ public class HarvesterLogic : MonoBehaviour {
     
     private void Update() {
 
-        // TODO: make this nicer, cause right not the harvester retries every second.
-        // TODO: but ideally it should 'know' when the gold deposits on the map have changed e.g. those tiles become walkable or not,
-        // TODO: or new gold deposits appeared. And only then try to find a new order if it doesn't have one.
+        // TODO: Make this nicer, because right now the harvester retries every second.
+        // TODO: Ideally it should 'know' when the gold deposits on the map have changed e.g. those tiles become walkable or not, or new gold deposits appeared. 
+        // TODO: And only then try to find a new order if it doesn't have one.
         
-        if (!unit.CurrentOrder) {
+        if (unit.CurrentOrder == null) {
             if (loadedAmount < 1) {
                 if (newOrderTimer == null)
                     newOrderTimer = 0;
@@ -82,7 +82,7 @@ public class HarvesterLogic : MonoBehaviour {
         }
 
         else if (loadedAmount >= 1) {
-            if (unit.CurrentOrder.OrderKind != UnitOrder.Kind.Unload && unit.CurrentOrder.Source == this && homeBase)
+            if (unit.CurrentOrder.OrderKind != UnitOrder.Kind.Unload && unit.CurrentOrder.OrderSource == this && homeBase)
                 unit.SetOrder(UnitOrder.Unload(this, homeBase));
         }
 

@@ -64,7 +64,7 @@ public class RepathSystem : WorldBehaviour {
         for (var i = 0; i < maxPathFindingQueriesPerFrame && unitsToRepath.Count > 0; i++) {
             var unit = unitsToRepath.First();
             unitsToRepath.Remove(unit);
-            if (unit.CurrentOrder) {
+            if (unit.CurrentOrder != null) {
                 unit.Movement.FindPathToDestination();
                 repathed++;
             }
