@@ -20,6 +20,7 @@ using Object = UnityEngine.Object;
 public class UnitOrder {
 
     public enum Kind {
+        None,
         Move,
         Attack,
         Harvest,
@@ -46,6 +47,10 @@ public class UnitOrder {
         this.moveDestination = moveDestination;
         this.orderSource = orderSource;
         creationTime = Time.time;
+    }
+    
+    public static implicit operator bool(UnitOrder order) {
+        return order != null && order.OrderKind != Kind.None;
     }
 
     public static UnitOrder Move(Object source, Vector2 destination) {

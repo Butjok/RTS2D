@@ -35,7 +35,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 6164481452469260190}
   - {fileID: 2417167683978420997}
   - {fileID: 4210944201369948522}
   m_Father: {fileID: 0}
@@ -81,7 +80,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: cd3f32c7c5cb541a98a1ea59362a80b9, type: 3}
   deathScreams: []
   currentOrder:
-    source: {fileID: 0}
+    orderSource: {fileID: 0}
     kind: 0
     moveDestination: {x: 0, y: 0}
     targetUnit: {fileID: 0}
@@ -103,6 +102,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   unit: {fileID: 8676087694340533686}
+  viewBase: {fileID: 2417167683978420997}
   cell: {x: 0, y: 0}
   pathRenderer: {fileID: 3291945252028627405}
   shouldMoveAlongPath: 1
@@ -113,7 +113,6 @@ MonoBehaviour:
   offThePathTimeThresholdForRepath: 1
   requestOtherUnitToStepAsideTimeThreshold: 0.5
   crushingAudioClip: {fileID: 8300000, guid: f2452fc17e332984b899c080b9ecf3cd, type: 3}
-  roundTableSprite: {fileID: 0}
   wasRequestedToStepAsideBy: []
   aStarPath: []
   notSmoothPath: []
@@ -385,12 +384,12 @@ Transform:
   m_GameObject: {fileID: 1980380257679870901}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.2, z: 0.552}
-  m_LocalScale: {x: 0.66, y: 0.4, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.552}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 95177331063239617}
-  m_Father: {fileID: 7173177982015303562}
+  m_Father: {fileID: 2417167683978420997}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4796038658979325212
 GameObject:
@@ -422,7 +421,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0.2, z: 0}
   m_LocalScale: {x: 0.66, y: 0.4, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 6164481452469260190}
   m_Father: {fileID: 7173177982015303562}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &1995216079049900060

@@ -39,7 +39,7 @@ public class HarvesterLogic : MonoBehaviour {
         // TODO: Ideally it should 'know' when the gold deposits on the map have changed e.g. those tiles become walkable or not, or new gold deposits appeared. 
         // TODO: And only then try to find a new order if it doesn't have one.
         
-        if (unit.CurrentOrder == null) {
+        if (!unit.CurrentOrder) {
             if (loadedAmount < 1) {
                 if (newOrderTimer == null)
                     newOrderTimer = 0;
