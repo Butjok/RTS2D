@@ -29,7 +29,8 @@ public class PlayerCameraManager : WorldBehaviour {
 
     private IEnumerator rotationCoroutine;
     
-    public void Initialize(PlayerController playerController) {
+    public void Initialize(World world, PlayerCameraManager prefab, PlayerController playerController) {
+        base.Initialize( world, prefab);
         this.playerController = playerController;
         position = this.playerController.transform.position + startPositionOffset;
     }

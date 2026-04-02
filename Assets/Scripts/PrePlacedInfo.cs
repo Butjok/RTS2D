@@ -14,6 +14,11 @@
 
 using UnityEngine;
 
+/*
+ * This class is used for units and buildings which are placed in the scene using Unity editor.
+ * It contains all the necessary information to initialize the unit or building at the start of the game, such as which player it belongs to and which prefab to use for it.
+ */
+
 public class PrePlacedInfo : MonoBehaviour {
 
     [SerializeField] private World world;

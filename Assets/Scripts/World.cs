@@ -17,6 +17,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
+/*
+ * This is the main container class for the game.
+ *
+ * It is used to spawn and despawn 'WorldBehaviour' objects.
+ * It also tracks the players, units, buildings and other important objects in the game.
+ * It also spawn players on game start.
+ */
+
 public class World : MonoBehaviour {
 
     [Serializable]
@@ -24,14 +32,14 @@ public class World : MonoBehaviour {
         [SerializeField] private int id;
         [SerializeField] private Player.Kind kind;
         [SerializeField] private Color color;
-        
+
         public int Id => id;
         public Player.Kind Kind => kind;
         public Color Color => color;
     }
-    
+
     [SerializeField] private List<PlayerSpawnInfo> playerSpawnInfos = new();
-    private readonly  HashSet<int> usedPlayerIds = new();
+    private readonly HashSet<int> usedPlayerIds = new();
     [SerializeField] private List<Player> players = new();
     [SerializeField] private PlayerController playerControllerPrefab;
     [SerializeField] private PlayerController playerController;
@@ -113,7 +121,7 @@ public class World : MonoBehaviour {
         }
 
         damageStats.EnsureTablesArePrecached();
-        
+
         if (humanPlayer && playerControllerPrefab) {
             playerController = Spawn(playerControllerPrefab, playerController => {
                 playerController.Initialize(this, playerControllerPrefab, humanPlayer);
@@ -148,7 +156,7 @@ public class World : MonoBehaviour {
 
         if (instance is Unit unit)
             units.Add(unit);
-        if (instance is Building building && !building.IsGhost) 
+        if (instance is Building building && !building.IsGhost)
             buildings.Add(building);
         if (instance is ISelectable selectable && selectable.CanEverBeSelected)
             selectables.Add(selectable);
@@ -160,12 +168,12 @@ public class World : MonoBehaviour {
     }
 
     public void Destroy(WorldBehaviour obj) {
-        
+
         onObjectDestroyed?.Invoke(obj);
 
         if (obj is Unit unit)
             units.Remove(unit);
-        if (obj is Building building) 
+        if (obj is Building building)
             buildings.Remove(building);
         if (obj is ISelectable selectable)
             selectables.Remove(selectable);
@@ -175,30 +183,7 @@ public class World : MonoBehaviour {
 
     private void OnValidate() {
         var prePlacedInfos = FindObjectsByType<PrePlacedInfo>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        foreach (var prePlacedInfo in prePlacedInfos) 
+        foreach (var prePlacedInfo in prePlacedInfos)
             prePlacedInfo.UpdateInEditorPlayerColor();
-    }
-}
-
-public abstract class WorldBehaviour : MonoBehaviour {
-
-    [SerializeField] private WorldBehaviour prefab;
-    [SerializeField] private World world;
-
-    public World World => world;
-
-    public T GetPrefab<T>() where T : WorldBehaviour {
-        Debug.Assert(prefab is T, $"Prefab of {name} is of type {prefab.GetType().Name} but requested type is {typeof(T).Name}.");
-        return (T)prefab;
-    }
-
-    private bool wasInitialized;
-
-    protected void Initialize(World world, WorldBehaviour prefab = null) {
-        Debug.Assert(!wasInitialized, $"WorldBehaviour {name} was already initialized.");
-        wasInitialized = true;
-
-        this.world = world;
-        this.prefab = prefab;
     }
 }

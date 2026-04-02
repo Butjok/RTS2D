@@ -25,7 +25,6 @@ using UnityEngine;
  * Right now this is only used to save and load game settings.
  * In the future this might be used to actually save and load game state, to support references to objects, support spawning of objects, versioning.
  * Also this should be implemented as a code generation rather than being based on reflection.
- * - Viktor Fedotov 01.04.2026
  */
 
 public class SimpleReflectionBasedTextSerializer {

@@ -15,6 +15,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/*
+ * This class implements a stack based state machine. Only the top state is active at any time.
+ * Meaning that you can push new states on top of the stack, and pop states from the stack.
+ * This is useful when you want to have a state which itself is a state machine. In usual approach one would create a state class which is both
+ * state and a state machine, but this approach is more flexible. Simply push a new state on top of the stack. And pop it when needed.
+ *
+ * Each gameplay state runs with an enumerator. This enumerator yields the info on what state changes should be made:
+ * how many states to pop, and if a new state should be pushed on top.
+ */
+
 public class GameplayStateMachine : WorldBehaviour {
 
     [SerializeField] private List<GameplayStateBase> states = new();

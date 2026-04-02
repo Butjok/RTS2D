@@ -15,6 +15,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/*
+ * Path smoothing.
+ * It is a simple algorithm that takes a path and tries to replace segments of it with straight lines.
+ * It uses the Amanatides-Woo tracing algorithm to check if the straight line is walkable.
+ */
+
 public static class PathSmoother {
 
     private static readonly List<Vector2Int> segmentCells = new();

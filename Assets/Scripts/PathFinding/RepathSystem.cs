@@ -17,6 +17,12 @@ using System.Linq;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
+/*
+ * This script holds a 'queue' of units which should recalculate their paths either due to new order or changes in the level.
+ * It processes a limited number of pathfinding queries per frame to avoid performance spikes. The rest of the units will be processed in the next frames.
+ * When a new building is spawned, it adds its bounds to the dirtyBoundsList. Each frame, we check which units have paths that intersect with any of the dirty bounds and enqueue them for repathing.
+ */
+
 public class RepathSystem : WorldBehaviour {
 
     [SerializeField] private int maxPathFindingQueriesPerFrame = 5;

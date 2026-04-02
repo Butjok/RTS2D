@@ -17,6 +17,13 @@
 using UnityEngine;
 using UnityEditor;
 
+/*
+ * This is a quality of life class which automatically sets pre-placed units and buildings to inactive state right before entering play mode.
+ * This is important because units and buildings are supposed to be initialized before the first Awake() call.
+ *
+ * This class also colorizes the pre-placed units and buildings in the editor.
+ */
+
 [InitializeOnLoad]
 public static class PrePlacedInfoBeforePlay {
 

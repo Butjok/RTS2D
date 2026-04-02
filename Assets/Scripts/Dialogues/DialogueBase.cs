@@ -17,6 +17,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+/*
+ * The dialogues are basically a list of dialogue commands.
+ * Currently there are two types of commands: SetSpeaker and SayLine. In the future we might support commands like OptionSelect, GameTrigger etc.
+ *
+ * To make editing of the dialogue nicer in inspector we have a list of LinesBatch, which is basically a speaker and a list of lines.
+ * OnValidate we convert this list to the list of commands.
+ */
+
 [CreateAssetMenu(fileName = nameof(DialogueBase), menuName = nameof(DialogueBase))]
 public class DialogueBase : ScriptableObject, IEnumerable<DialogueBase.Command> {
 

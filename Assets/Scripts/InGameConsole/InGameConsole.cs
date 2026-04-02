@@ -18,6 +18,10 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
+/*
+ * A very simplistic in-game console with autocompletion on [Tab].
+ */
+
 public class InGameConsole : WorldBehaviour {
 
     [SerializeField] private int viewRadius = 5;

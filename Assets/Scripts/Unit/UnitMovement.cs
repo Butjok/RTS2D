@@ -18,6 +18,19 @@ using System.Collections.Generic;
 //using Drawing;
 using UnityEngine;
 
+/*
+ * CONCEPT
+ * 
+ * Units are moving on a grid. Each unit occupies exactly one cell where it stands. 
+ * When unit is about to move it 'reserves' the next cell on its path. Each unit can have only one reservation.
+ * If that cell is already occupied or reserved by another unit -> it means the unit is stuck.
+ * 
+ * In this case the moving unit asks the unit in the way to step aside. The unit which tries to step aside simply finds a free nearby cell and moves there.
+ * TODO: Edge case: currently if there is no free cell to step aside the moving unit gets completely stuck.
+ * This should be mitigated by 'recursively' asking units to step aside and do it in a 'wave' fashion.
+ * In case the unit gets stuck for too long then it should find another path by also marking the unit in the way as an obstacle for pathfinding. 
+ */
+
 public class UnitMovement : MonoBehaviour {
 
     [SerializeField] private Unit unit;

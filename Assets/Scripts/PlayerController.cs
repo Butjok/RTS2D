@@ -107,10 +107,14 @@ public class PlayerController : WorldBehaviour {
         rayTraceDefaultMask = ~(ignoreRaycastMask | unitLayerMask | buildingLayerMask);
 
         if (playerCameraManagerPrefab)
-            playerCameraManager = World.Spawn(playerCameraManagerPrefab, playerCameraManager => { playerCameraManager.Initialize(this); });
+            playerCameraManager = World.Spawn(playerCameraManagerPrefab, playerCameraManager => {
+                playerCameraManager.Initialize(World, playerCameraManagerPrefab, this);
+            });
 
         if (playerHUDPrefab) {
-            playerHUD = World.Spawn(playerHUDPrefab, World.PlayerHUDContainer, playerHUD => { playerHUD.Initialize(World, playerHUDPrefab, this); });
+            playerHUD = World.Spawn(playerHUDPrefab, World.PlayerHUDContainer, playerHUD => {
+                playerHUD.Initialize(World, playerHUDPrefab, this);
+            });
             playerHUD.RespawnBuildIcons(EnumerateConstructionOptions());
         }
 
