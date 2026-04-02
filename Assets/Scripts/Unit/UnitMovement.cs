@@ -111,8 +111,8 @@ public class UnitMovement : MonoBehaviour {
 
     private IEnumerator MoveToCell(Vector2 end, Vector2Int endCell) {
         Debug.Assert(unit.World.Grid[endCell].isWalkable);
-        var enemyUnit = unit.World.Grid[endCell].occupiedBy;
-        Debug.Assert(!enemyUnit || CanCrush(enemyUnit));
+        var otherUnit = unit.World.Grid[endCell].occupiedBy;
+        Debug.Assert(!otherUnit || CanCrush(otherUnit));
         Debug.Assert(unit.World.Grid[endCell].reservedBy == unit);
 
         ReservedCell = endCell;
@@ -153,10 +153,11 @@ public class UnitMovement : MonoBehaviour {
 
         unit.World.Grid[cell].occupiedBy = null;
 
-        if (enemyUnit) {
+        otherUnit = unit.World.Grid[endCell].occupiedBy; // we need to update because the unit could have went away while we were moving
+        if (otherUnit) {
             // if we get here it means there is an enemy unit on this cell and we can crush it, so we destroy the enemy unit
 
-            enemyUnit.Die();
+            otherUnit.Die();
 
             unit.World.AudioSystem.PlayOneShotWithCooldown(unit.EffectsAudioSource, crushingAudioClip);
         }
