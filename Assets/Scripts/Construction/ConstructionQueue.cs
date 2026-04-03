@@ -65,7 +65,9 @@ public class ConstructionQueue : MonoBehaviour {
                             constructionQueueItem.Invalidate();
                         }
                     }
-                    else if (constructionQueueItem.ConstructionOption.Prefab is Building) { }
+                    else if (constructionQueueItem.ConstructionOption.Prefab is Building) {
+                        // do nothing here
+                    }
                 }
             }
         }

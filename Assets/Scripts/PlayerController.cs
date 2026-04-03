@@ -107,14 +107,10 @@ public class PlayerController : WorldBehaviour {
         rayTraceDefaultMask = ~(ignoreRaycastMask | unitLayerMask | buildingLayerMask);
 
         if (playerCameraManagerPrefab)
-            playerCameraManager = World.Spawn(playerCameraManagerPrefab, playerCameraManager => {
-                playerCameraManager.Initialize(World, playerCameraManagerPrefab, this);
-            });
+            playerCameraManager = World.Spawn(playerCameraManagerPrefab, playerCameraManager => { playerCameraManager.Initialize(World, playerCameraManagerPrefab, this); });
 
         if (playerHUDPrefab) {
-            playerHUD = World.Spawn(playerHUDPrefab, World.PlayerHUDContainer, playerHUD => {
-                playerHUD.Initialize(World, playerHUDPrefab, this);
-            });
+            playerHUD = World.Spawn(playerHUDPrefab, World.PlayerHUDContainer, playerHUD => { playerHUD.Initialize(World, playerHUDPrefab, this); });
             UpdateConstructionOptions(silent: true);
         }
 
@@ -129,17 +125,17 @@ public class PlayerController : WorldBehaviour {
     }
 
     public void UpdateConstructionOptions(bool silent = false) {
-        
+
         constructionOptions.Clear();
         constructionOptions.UnionWith(EnumerateConstructionOptions());
         constructionOptions.ExceptWith(oldConstructionOptions);
-        
+
         if (!silent && constructionOptions.Count > 0)
             NotifyNewConstructionOptions();
-        
+
         oldConstructionOptions.Clear();
         oldConstructionOptions.UnionWith(EnumerateConstructionOptions());
-        
+
         playerHUD.UpdateConstructionOptionsButtons(oldConstructionOptions);
     }
 
@@ -289,13 +285,11 @@ public class PlayerController : WorldBehaviour {
                             unit.SetOrder(UnitOrder.Attack(this, targetUnit, destination));
                         else if (targetBuilding && unit.CanAttack(targetBuilding))
                             unit.SetOrder(UnitOrder.Attack(this, targetBuilding, destination));
-                        else if (harvesterLogic) {
-                            if (World.Grid[destinationCell].HasGold)
-                                unit.SetOrder(UnitOrder.Harvest(this, destination));
-                            else if (targetRefinery && targetRefinery.OwningPlayer == unit.OwningPlayer) {
-                                harvesterLogic.HomeBase = targetRefinery;
-                                unit.SetOrder(UnitOrder.Unload(this, targetRefinery));
-                            }
+                        else if (harvesterLogic && World.Grid[destinationCell].HasGold)
+                            unit.SetOrder(UnitOrder.Harvest(this, destination));
+                        else if (harvesterLogic && targetRefinery && targetRefinery.OwningPlayer == unit.OwningPlayer) {
+                            harvesterLogic.HomeBase = targetRefinery;
+                            unit.SetOrder(UnitOrder.Unload(this, targetRefinery));
                         }
                         else
                             unit.SetOrder(UnitOrder.Move(this, destination));
@@ -432,15 +426,19 @@ public class PlayerController : WorldBehaviour {
     public void NotifyPutOnHold(ConstructionQueueItem item) {
         World.AudioSystem.SayAnnouncerVoiceLine(announcer_onHold);
     }
+
     public void NotifyCancelled(ConstructionQueueItem item) {
         World.AudioSystem.SayAnnouncerVoiceLine(announcer_cancelled);
     }
+
     public void NotifyResumeBuilding(ConstructionQueueItem constructionQueueItem) {
         World.AudioSystem.SayAnnouncerVoiceLine(announcer_building);
     }
+
     public void NotifyReinforcementsHaveArrived() {
         World.AudioSystem.SayAnnouncerVoiceLine(announcer_reinforcementsHaveArrived);
     }
+
     public void NotifyLowPower() {
         World.AudioSystem.SayAnnouncerVoiceLine(announcer_lowPower);
     }
