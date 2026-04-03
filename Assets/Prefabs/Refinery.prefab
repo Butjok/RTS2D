@@ -212,6 +212,7 @@ MonoBehaviour:
   canEverBeSelected: 1
   constructionOptions: []
   constructionQueue: {fileID: 387407875213640149}
+  kind: 0
   goldDepositPoint: {fileID: 7760176871176235533}
 --- !u!65 &4935524242503908259
 BoxCollider:

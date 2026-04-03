@@ -50,26 +50,6 @@ public class Player : WorldBehaviour {
         this.kind = kind;
     }
 
-    private void Awake() {
-        World.onObjectSpawned += OnBuildingSpawned;
-        World.onObjectDestroyed += OnBuildingDestroyed;
-    }
-
-    private void OnDestroy() {
-        World.onObjectSpawned += OnBuildingSpawned;
-        World.onObjectDestroyed += OnBuildingDestroyed;
-    }
-
-    private void OnBuildingSpawned(Object obj) {
-        if (obj is Building building && building.OwningPlayer == this && !building.IsGhost)
-            IncrementBuildingsCountOf(building.GetPrefab<Building>());
-    }
-
-    private void OnBuildingDestroyed(Object obj) {
-        if (obj is Building building && building.OwningPlayer == this && !building.IsGhost)
-            DecrementBuildingsCountOf(building.GetPrefab<Building>());
-    }
-
     public Color Color {
         get => color;
         set {
@@ -127,8 +107,16 @@ public class Player : WorldBehaviour {
     }
 
     public void RemovePrimaryBuilding(Building building) {
-        if (primaryBuildings.TryGetValue(building.GetPrefab<Building>(), out var primaryBuilding) && primaryBuilding == building)
+        if (primaryBuildings.TryGetValue(building.GetPrefab<Building>(), out var primaryBuilding) && primaryBuilding && primaryBuilding == building) {
             primaryBuildings.Remove(building.GetPrefab<Building>());
+            
+            // find another building of the same type to be the new primary building
+            foreach (var otherBuilding in World.Buildings)
+                if (otherBuilding && otherBuilding.OwningPlayer == this && otherBuilding.GetPrefab<Building>() == building.GetPrefab<Building>() && !otherBuilding.IsGhost) {
+                    primaryBuildings.Add(building.GetPrefab<Building>(), otherBuilding);
+                    break;
+                }
+        }
     }
 
     public Building GetPrimaryBuilding(Building buildingType) {

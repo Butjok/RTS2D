@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 public class PlayerHUD : WorldBehaviour {
 
@@ -55,6 +56,9 @@ public class PlayerHUD : WorldBehaviour {
     [SerializeField] private GameObject defeatScreen;
 
     [SerializeField] private BuildIcon buildIconTemplate;
+    
+    private List<BuildIcon > existingBuildIcons = new();
+    private List<ConstructionOption> buildIconsToBuild = new();
 
     public PlayerController PlayerController => playerController;
 
@@ -188,16 +192,22 @@ public class PlayerHUD : WorldBehaviour {
         defeatScreen.SetActive(true);
     }
 
-    public void RespawnBuildIcons(IEnumerable<ConstructionOption> constructionOptions) {
+    public void UpdateConstructionOptionsButtons(HashSet<ConstructionOption> constructionOptions) {
+
+        existingBuildIcons.Clear();
+        buildIconTemplate.transform.parent.GetComponentsInChildren(false, existingBuildIcons);
         
-        foreach (var child in buildIconTemplate.transform.parent.GetComponentsInChildren<BuildIcon>())
-            Destroy(child.gameObject);
+        buildIconsToBuild.Clear();
+        foreach (var constructionOption in constructionOptions)
+            if (!existingBuildIcons.Exists(icon => icon.ConstructionOption == constructionOption))
+                buildIconsToBuild.Add(constructionOption);
+
+        foreach (var existingBuildIcon in existingBuildIcons)
+            if (!constructionOptions.Contains(existingBuildIcon.ConstructionOption))
+                Destroy(existingBuildIcon.gameObject);
         
-        if (buildIconTemplate.gameObject.activeSelf)
-            buildIconTemplate.gameObject.SetActive(false);
-        
-        foreach (var constructionOption in constructionOptions) {
-            var buildIcon = Instantiate(buildIconTemplate, buildIconTemplate.transform.parent).GetComponent<BuildIcon>();
+        foreach (var constructionOption in buildIconsToBuild) {
+            var buildIcon = Instantiate(buildIconTemplate, buildIconTemplate.transform.parent);
             buildIcon.Initialize(constructionOption);
             buildIcon.gameObject.SetActive(true);
         }

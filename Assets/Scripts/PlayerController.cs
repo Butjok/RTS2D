@@ -53,7 +53,7 @@ public class PlayerController : WorldBehaviour {
     public bool enableUnitOrders = true;
     public bool enableBuildingPlacement = true;
 
-    private Building buildingPrefabToPlace;
+    private BuildIcon buildIconBeingPlaced;
     private Building buildingGhost;
 
     [SerializeField] private int spawnedUnitsCount = 0;
@@ -115,7 +115,7 @@ public class PlayerController : WorldBehaviour {
             playerHUD = World.Spawn(playerHUDPrefab, World.PlayerHUDContainer, playerHUD => {
                 playerHUD.Initialize(World, playerHUDPrefab, this);
             });
-            playerHUD.RespawnBuildIcons(EnumerateConstructionOptions());
+            UpdateConstructionOptions(silent: true);
         }
 
         UpdatePlayerCameraTransform();
@@ -126,28 +126,21 @@ public class PlayerController : WorldBehaviour {
                     unit.Initialize(World, unitPrefab, player);
                     unit.transform.position = hitInfo.point;
                 });
+    }
+
+    public void UpdateConstructionOptions(bool silent = false) {
         
+        constructionOptions.Clear();
+        constructionOptions.UnionWith(EnumerateConstructionOptions());
+        constructionOptions.ExceptWith(oldConstructionOptions);
+        
+        if (!silent && constructionOptions.Count > 0)
+            NotifyNewConstructionOptions();
+        
+        oldConstructionOptions.Clear();
         oldConstructionOptions.UnionWith(EnumerateConstructionOptions());
-
-        World.onObjectSpawned += UpdateConstructionOptions;
-        World.onObjectDestroyed += UpdateConstructionOptions;
-    }
-
-    private void OnDestroy() {
-        World.onObjectSpawned -= UpdateConstructionOptions;
-        World.onObjectDestroyed += UpdateConstructionOptions;
-    }
-
-    private void UpdateConstructionOptions(Object obj) {
-        if (obj is Building building && !building.IsGhost && building.OwningPlayer == player) {
-            constructionOptions.Clear();
-            constructionOptions.UnionWith(EnumerateConstructionOptions());
-            constructionOptions.ExceptWith(oldConstructionOptions);
-            if (constructionOptions.Count > 0)
-                NotifyNewConstructionOptions();
-            oldConstructionOptions.Clear();
-            oldConstructionOptions.UnionWith(EnumerateConstructionOptions());
-        }
+        
+        playerHUD.UpdateConstructionOptionsButtons(oldConstructionOptions);
     }
 
     private Unit FindLoudestUnitWhichCanReceiveOrder(IEnumerable<Unit> units) {
@@ -322,28 +315,26 @@ public class PlayerController : WorldBehaviour {
         }
 
         if (enableBuildingPlacement) {
-            if (buildingPrefabToPlace) {
+            if (buildIconBeingPlaced) {
 
-                buildingGhost = World.BuildingGhostsSystem.Get(buildingPrefabToPlace);
+                var buildingPrefab = (Building)buildIconBeingPlaced.ConstructionOption.Prefab;
+                buildingGhost = World.BuildingGhostsSystem.Get(buildingPrefab);
                 if (TryTraceRay(Input.mousePosition, out var hitInfo)) {
-                    World.BuildingGhostsSystem.Show(buildingPrefabToPlace);
+                    World.BuildingGhostsSystem.Show(buildingPrefab);
                     buildingGhost.transform.position = hitInfo.point;
 
-                    var canBePlaced = CanBePlaced(buildingPrefabToPlace, hitInfo.point);
+                    var canBePlaced = CanBePlaced(buildingPrefab, hitInfo.point);
                     buildingGhost.IsValidGhostPlacement = canBePlaced;
 
                     if (canBePlaced && Input.GetMouseButtonDown(MouseButton.left)) {
-                        var buildingsCountOfThisType = player.GetBuildingsCountOf(buildingPrefabToPlace);
-                        World.Spawn(buildingPrefabToPlace, building => {
-                            building.Initialize(World, buildingPrefabToPlace, player, buildingsCountOfThisType == 0, false);
-                            building.transform.position = hitInfo.point;
-                            building.SetPlayConstructionAnimationOnStart(true);
-                        });
-                        StopBuildingPlacement();
+                        if (TryPlaceBuilding(hitInfo.point)) {
+                            buildIconBeingPlaced.NotifyWasPlaced();
+                            StopBuildingPlacement();
+                        }
                     }
                 }
                 else
-                    World.BuildingGhostsSystem.Hide(buildingPrefabToPlace);
+                    World.BuildingGhostsSystem.Hide(buildingPrefab);
             }
         }
 
@@ -360,8 +351,8 @@ public class PlayerController : WorldBehaviour {
         }
     }
 
-    public void StartBuildingPlacement(Building building) {
-        buildingPrefabToPlace = building;
+    public void StartBuildingPlacement(BuildIcon buildIcon) {
+        buildIconBeingPlaced = buildIcon;
     }
 
     public void StopBuildingPlacement() {
@@ -369,9 +360,19 @@ public class PlayerController : WorldBehaviour {
             buildingGhost.gameObject.SetActive(false);
             buildingGhost = null;
         }
-        buildingPrefabToPlace = null;
+        buildIconBeingPlaced = null;
     }
 
+    public bool TryPlaceBuilding(Vector3 position) {
+        var buildingPrefab = (Building)buildIconBeingPlaced.ConstructionOption.Prefab;
+        var buildingsCountOfThisType = player.GetBuildingsCountOf(buildingPrefab);
+        World.Spawn(buildingPrefab, building => {
+            building.Initialize(World, buildingPrefab, player, buildingsCountOfThisType == 0);
+            building.transform.position = position;
+            building.SetPlayConstructionAnimationOnStart(true);
+        });
+        return true;
+    }
 
     private bool TryTraceRay(Vector2 screenPosition, out RaycastHit hitInfo, LayerMask? layerMask = null) {
         var ray = playerCamera.ScreenPointToRay(screenPosition);

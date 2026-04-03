@@ -156,8 +156,12 @@ public class World : MonoBehaviour {
 
         if (instance is Unit unit)
             units.Add(unit);
-        if (instance is Building building && !building.IsGhost)
+        if (instance is Building building && !building.IsGhost) {
             buildings.Add(building);
+            building.OwningPlayer.IncrementBuildingsCountOf(building.GetPrefab<Building>());
+            if (building.OwningPlayer.PlayerController)
+                building.OwningPlayer.PlayerController.UpdateConstructionOptions();
+        }
         if (instance is ISelectable selectable && selectable.CanEverBeSelected)
             selectables.Add(selectable);
 
@@ -173,8 +177,12 @@ public class World : MonoBehaviour {
 
         if (obj is Unit unit)
             units.Remove(unit);
-        if (obj is Building building)
+        if (obj is Building building && !building.IsGhost) {
             buildings.Remove(building);
+            building.OwningPlayer.DecrementBuildingsCountOf(building.GetPrefab<Building>());
+            if (building.OwningPlayer.PlayerController)
+                building.OwningPlayer.PlayerController.UpdateConstructionOptions();
+        }
         if (obj is ISelectable selectable)
             selectables.Remove(selectable);
 

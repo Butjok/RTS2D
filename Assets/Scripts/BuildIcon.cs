@@ -30,6 +30,8 @@ public class BuildIcon : Image, IPointerClickHandler {
     private ConstructionOption constructionOption;
     private ConstructionQueueItem constructionQueueItem;
 
+    public ConstructionOption ConstructionOption => constructionOption;
+
     public void Initialize(ConstructionOption constructionOption) {
         this.constructionOption = constructionOption;
         InstantiateMaterial();
@@ -110,9 +112,8 @@ public class BuildIcon : Image, IPointerClickHandler {
 
             else if (constructionQueueItem.BuildStatus == ConstructionQueueItem.Status.ConstructionComplete) {
                 Debug.Assert(constructionQueueItem.ConstructionOption.Prefab is Building);
-                var buildingPrefab = (Building)constructionQueueItem.ConstructionOption.Prefab;
                 Debug.Assert(owningHUD.PlayerController);
-                owningHUD.PlayerController.StartBuildingPlacement(buildingPrefab);
+                owningHUD.PlayerController.StartBuildingPlacement(this);
             }
 
             else if (constructionQueueItem.BuildStatus == ConstructionQueueItem.Status.QueuedOrBuilding && constructionQueueItem.ConstructionOption.Prefab is Unit)
@@ -121,7 +122,7 @@ public class BuildIcon : Image, IPointerClickHandler {
 
         else if (eventData.button == PointerEventData.InputButton.Right) {
             if (constructionQueueItem) {
-                
+
                 if (constructionQueueItem.BuildStatus == ConstructionQueueItem.Status.QueuedOrBuilding)
                     constructionQueueItem.BuildStatus = ConstructionQueueItem.Status.OnHold;
 
@@ -136,5 +137,11 @@ public class BuildIcon : Image, IPointerClickHandler {
                 }
             }
         }
+    }
+
+    public void NotifyWasPlaced() {
+        constructionQueueItem.Invalidate();
+        constructionQueueItem = null;
+        Progress = 1;
     }
 }

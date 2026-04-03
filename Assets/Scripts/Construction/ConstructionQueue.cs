@@ -40,6 +40,10 @@ public class ConstructionQueue : MonoBehaviour {
     }
 
     private void Update() {
+        
+        while (constructionQueue.Count > 0 && !constructionQueue[0])
+            constructionQueue.RemoveAt(0);
+        
         if (constructionQueue.Count > 0) {
             var constructionQueueItem = constructionQueue[0];
 

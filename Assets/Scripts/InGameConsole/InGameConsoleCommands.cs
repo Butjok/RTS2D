@@ -34,19 +34,6 @@ public static class InGameConsoleCommands {
     public static IReadOnlyList<InGameConsoleCommand> Commands => allCommands;
 }
 
-public class StartBuildingPlacementInGameConsoleCommand : InGameConsoleCommand {
-    public StartBuildingPlacementInGameConsoleCommand() : base(nameof(StartBuildingPlacementInGameConsoleCommand)) { }
-
-    public override object Execute(World world, IReadOnlyList<object> arguments) {
-        foreach (var constructionOption in world.PlayerController.EnumerateConstructionOptions())
-            if (constructionOption.Prefab is Building buildingPrefab) {
-                world.PlayerController.StartBuildingPlacement(buildingPrefab);
-                break;
-            }
-        return null;
-    }
-}
-
 public class StopBuildingPlacementInGameConsoleCommand : InGameConsoleCommand {
     public StopBuildingPlacementInGameConsoleCommand() : base(nameof(StopBuildingPlacementInGameConsoleCommand)) { }
 

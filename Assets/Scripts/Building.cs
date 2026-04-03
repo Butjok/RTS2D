@@ -24,7 +24,11 @@ using UnityEditor;
 [RequireComponent(typeof(ConstructionQueue))]
 public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, ICanBePrePlaced {
 
-
+    public enum Kind {
+        Normal,
+        Ghost
+    }
+    
     private static readonly int shader_playerColor = Shader.PropertyToID("_PlayerColor");
     private static readonly int shader_baseColor = Shader.PropertyToID("_Color");
 
@@ -39,6 +43,8 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     [SerializeField] private List<ConstructionOption> constructionOptions = new();
 
     [SerializeField] private ConstructionQueue constructionQueue;
+    [SerializeField] private Kind kind = Kind.Normal;
+    
     private float health = 1;
     private float? lastDamageTime;
 
@@ -50,6 +56,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
 
     public BoxCollider BoxCollider => boxCollider;
     public ConstructionQueue ConstructionQueue => constructionQueue;
+    public bool IsGhost => kind == Kind.Ghost;
 
     public IReadOnlyList<ConstructionOption> ConstructionOptions {
         get {
@@ -60,13 +67,13 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
         }
     }
 
-    public void Initialize(World world, Building prefab, Player owningPlayer, bool isPrimaryBuilding, bool isGhost) {
+    public void Initialize(World world, Building prefab, Player owningPlayer, bool isPrimaryBuilding, Kind kind = Kind.Normal) {
         base.Initialize(world, prefab);
         OwningPlayer = owningPlayer;
+        this.kind = kind;
         if (isPrimaryBuilding)
             OwningPlayer.SetPrimaryBuilding(this);
-        if (isGhost) {
-            IsGhost = true;
+        else if (kind == Kind.Ghost) {
             if (boxCollider)
                 boxCollider.enabled = false;
             foreach (var renderer in renderers)
@@ -76,7 +83,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
     }
 
     public void InitializeFromPrePlacedInfo(PrePlacedInfo info) {
-        Initialize(info.World, (Building)info.Prefab, info.Player, info.IsPrimaryBuilding, false);
+        Initialize(info.World, (Building)info.Prefab, info.Player, info.IsPrimaryBuilding, Kind.Normal);
     }
 
     private void Awake() {
@@ -132,7 +139,7 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
         }
     }
 
-    // Public setter because building can change their alliance
+    // Public setter because building can change their allegiance
     public Player OwningPlayer {
         get => owningPlayer;
         set {
@@ -154,9 +161,6 @@ public class Building : WorldBehaviour, ISelectable, IHasHealth, IAttackTarget, 
         playConstructionAnimationOnStart = value;
         isFullyBuilt = !playConstructionAnimationOnStart;
     }
-
-    // Ghost is a building visualization used when player is placing a building. It has different visuals and doesn't have a collider.
-    public bool IsGhost { get; private set; }
 
     protected virtual void OnBuilt() { }
 
